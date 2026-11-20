@@ -185,10 +185,10 @@ textarea.field{min-height:130px;font-size:14px}
 const ITEMS=[
   {k:'nail',lb:'爪切り',ic:'✂️',color:'var(--nail)'},
   {k:'ear',lb:'耳掃除',ic:'👂',color:'var(--ear)'},
-  {k:'shave',lb:'髭剃り',ic:'🪒',color:'var(--shave)'}
+  {k:'shave',lb:'髭剃り',ic:'🪒',color:'var(--shave)',daily:true}
 ];
 const WD=['日','月','火','水','木','金','土'];
-const ENC_ROSTER={"salt": "BKgBmF+jmD4E+Apxtmr52w==", "iv": "WPacoExbBKK6rQXW", "ct": "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", "iter": 200000};
+const ENC_ROSTER={"salt": "Zdo4I2yOyQmr/NjG/hAoyg==", "iv": "iO4a3xrw+U6kh33Z", "ct": "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", "iter": 200000};
 const KEY='seiyou-check-web-v1';
 
 const SAMPLE=[];
@@ -205,11 +205,18 @@ function personFrom(name,kana,sex,days){
 personFrom.n=0;
 function parseDays(s){s=s||'';const r=[];WD.forEach((w,i)=>{if(s.includes(w))r.push(i)});return r}
 function load(){
-  try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.people)return j}catch(e){}
-  return {people:SAMPLE.map(a=>personFrom(...a)),records:{},staff:'',sample:false};
+  try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.people){j.daily=j.daily||{};return j}}catch(e){}
+  return {people:SAMPLE.map(a=>personFrom(...a)),records:{},daily:{},staff:'',sample:false};
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('⚠ 保存できませんでした')}}
 function rec(ym){return S.records[ym]||(S.records[ym]={})}
+function dkey(d){d=d||new Date();return ymOf(d)+'-'+String(d.getDate()).padStart(2,'0')}
+function isCur(){return view.ym===ymOf(new Date())}
+function dailyGet(pid){return (S.daily[dkey()]||{})[pid]}
+function dailyDates(pid,ym){return Object.keys(S.daily).filter(d=>d.startsWith(ym+'-')&&S.daily[d][pid]).sort()}
+function lastDaily(pid){const ds=Object.keys(S.daily).filter(d=>S.daily[d][pid]).sort();return ds[ds.length-1]}
+function dshort(d){const [,m,dd]=d.split('-');return (+m)+'/'+(+dd)}
+function isDone(p,it,R){if(it.daily)return isCur()?!!dailyGet(p.id):dailyDates(p.id,view.ym).length>0;return !!(R[p.id]&&R[p.id][it.k])}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function fmtDate(iso){const d=new Date(iso);return (d.getMonth()+1)+'/'+d.getDate()}
 function ask(msg,yes,danger,noBtn){return new Promise(res=>{
@@ -243,9 +250,12 @@ function render(){
   // stats
   document.getElementById('stats').innerHTML=ITEMS.map(it=>{
     const tgt=S.people.filter(p=>p.items.includes(it.k));
-    const done=tgt.filter(p=>R[p.id]&&R[p.id][it.k]).length;
+    const done=tgt.filter(p=>isDone(p,it,R)).length;
     const pct=tgt.length?Math.round(done/tgt.length*100):0;
-    return `<div class="stat"><div class="l">${it.ic} ${it.lb}</div>
+    if(it.daily) return `<div class="stat"><div class="l">${it.ic} ${it.lb}（${isCur()?'今日':'今月'}）</div>
+      <div class="n">${done}<small> 人${isCur()?'実施':'が実施'}</small></div>
+      <div class="bar"><i style="width:${pct}%;background:${it.color}"></i></div></div>`;
+    return `<div class="stat"><div class="l">${it.ic} ${it.lb}（今月）</div>
       <div class="n">${done}<small> / ${tgt.length}人</small></div>
       <div class="bar"><i style="width:${pct}%;background:${it.color}"></i></div></div>`;
   }).join('');
@@ -258,7 +268,7 @@ function render(){
   const q=view.q.trim();
   let ps=sorted().filter(p=>!q||norm(p.name).includes(norm(q))||norm(p.kana).includes(norm(q)));
   if(view.filter==='today') ps=ps.filter(p=>p.days.includes(today));
-  if(view.filter==='todo') ps=ps.filter(p=>p.items.some(k=>!(R[p.id]&&R[p.id][k])));
+  if(view.filter==='todo') ps=ps.filter(p=>ITEMS.some(it=>p.items.includes(it.k)&&!isDone(p,it,R)));
   const list=document.getElementById('list');
   if(!S.people.length&&ENC_ROSTER){
     list.innerHTML=`<div class="empty unlock"><div style="font-size:40px">🔒</div><p>最初に一度だけ、事業所の合言葉を入れてください。<br>利用者の名簿が読み込まれます。</p>
@@ -272,12 +282,20 @@ function render(){
     list.innerHTML=`<div class="empty">${view.filter==='today'?'今日の利用予定の方が見つかりません。<br>「全員」で表示できます。':view.filter==='todo'?'🎉 今月は全員完了です！':'該当する方がいません'}</div>`;
   } else list.innerHTML=ps.map(p=>{
     const r=R[p.id]||{};
-    const complete=p.items.every(k=>r[k]);
+    const complete=ITEMS.every(it=>!p.items.includes(it.k)||isDone(p,it,R));
     return `<div class="person ${complete?'complete':''}">
       <div class="ph"><div><span class="kana">${esc(p.kana)}</span><span class="name">${esc(p.name)}</span>${complete?'<span class="done-badge">完了</span>':''}</div>
       <div class="days">${p.days.map(d=>WD[d]).join('・')}</div></div>
       <div class="btns">${ITEMS.map(it=>{
         if(!p.items.includes(it.k)) return `<button class="it na" disabled><span class="ic">${it.ic}</span><span class="lb">${it.lb}</span><span class="dt">対象外</span></button>`;
+        if(it.daily){
+          const n=dailyDates(p.id,view.ym).length;
+          if(!isCur()) return `<button class="it ${it.k} ${n?'on':''}" disabled><span class="ic">${it.ic}</span><span class="lb">${it.lb}</span><span class="dt">今月 ${n}回</span></button>`;
+          const x=dailyGet(p.id),last=lastDaily(p.id);
+          return `<button class="it ${it.k} ${x?'on':''}" data-p="${p.id}" data-k="${it.k}">
+          <span class="ic">${it.ic}</span><span class="lb">${it.lb}</span>
+          <span class="dt">${x?'今日 済'+(x.by?' '+esc(x.by):''):last?'前回 '+dshort(last):'今日 まだ'}</span></button>`;
+        }
         const x=r[it.k];
         return `<button class="it ${it.k} ${x?'on':''}" data-p="${p.id}" data-k="${it.k}">
           <span class="ic">${it.ic}</span><span class="lb">${it.lb}</span>
@@ -297,6 +315,18 @@ document.getElementById('list').onclick=async e=>{
   const b=e.target.closest('.it[data-p]');if(!b)return;
   const R=rec(view.ym),pid=b.dataset.p,k=b.dataset.k;
   const p=S.people.find(x=>x.id===pid), it=ITEMS.find(i=>i.k===k);
+  if(it.daily){
+    const dk=dkey();S.daily[dk]=S.daily[dk]||{};
+    if(S.daily[dk][pid]){
+      if(!await ask(`${p.name}さんの今日の「${it.lb}」を取り消しますか？`,'取り消す',true))return;
+      delete S.daily[dk][pid]; toast('取り消しました');
+    }else{
+      S.daily[dk][pid]={at:new Date().toISOString(),by:S.staff||''};
+      toast(`${it.ic} ${p.name}さん 今日の${it.lb} 完了`);
+      if(navigator.vibrate)navigator.vibrate(15);
+    }
+    save();render();return;
+  }
   R[pid]=R[pid]||{};
   if(R[pid][k]){
     if(!await ask(`${p.name}さんの「${it.lb}」の記録を取り消しますか？`,'取り消す',true))return;
@@ -421,15 +451,18 @@ document.getElementById('bPrint').onclick=()=>{
 };
 function table(){
   const R=rec(view.ym);
-  const lines=[['名前',...ITEMS.flatMap(i=>[i.lb+'_日付',i.lb+'_記録者'])]];
-  sorted().forEach(p=>{const r=R[p.id]||{};lines.push([p.name,...ITEMS.flatMap(i=>!p.items.includes(i.k)?['対象外','']:r[i.k]?[new Date(r[i.k].at).toLocaleDateString('ja-JP'),r[i.k].by]:['',''])])});
+  const lines=[['名前',...ITEMS.flatMap(i=>i.daily?[i.lb+'_回数',i.lb+'_実施日']:[i.lb+'_日付',i.lb+'_記録者'])]];
+  sorted().forEach(p=>{const r=R[p.id]||{};lines.push([p.name,...ITEMS.flatMap(i=>{
+    if(!p.items.includes(i.k))return ['対象外',''];
+    if(i.daily){const ds=dailyDates(p.id,view.ym);return [ds.length+'回',ds.map(dshort).join(' ')]}
+    return r[i.k]?[new Date(r[i.k].at).toLocaleDateString('ja-JP'),r[i.k].by]:['',''];})])});
   return lines;
 }
 function buildPrint(){
   const [y,m]=view.ym.split('-');const R=rec(view.ym);
   document.getElementById('printArea').innerHTML=`<h1>整容チェック表　${y}年${+m}月　デイサービスシャイン</h1>
   <table><thead><tr><th>利用者</th>${ITEMS.map(i=>`<th>${i.lb}</th>`).join('')}</tr></thead><tbody>
-  ${sorted().map(p=>{const r=R[p.id]||{};return `<tr><td>${esc(p.name)}</td>${ITEMS.map(i=>`<td>${!p.items.includes(i.k)?'―':r[i.k]?'✓ '+fmtDate(r[i.k].at)+(r[i.k].by?' '+esc(r[i.k].by):''):''}</td>`).join('')}</tr>`}).join('')}
+  ${sorted().map(p=>{const r=R[p.id]||{};return `<tr><td>${esc(p.name)}</td>${ITEMS.map(i=>`<td>${!p.items.includes(i.k)?'―':i.daily?(()=>{const ds=dailyDates(p.id,view.ym);return ds.length?ds.length+'回（'+ds.map(dshort).join(' ')+'）':''})():r[i.k]?'✓ '+fmtDate(r[i.k].at)+(r[i.k].by?' '+esc(r[i.k].by):''):''}</td>`).join('')}</tr>`}).join('')}
   </tbody></table>`;
 }
 function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
