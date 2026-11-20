@@ -78,6 +78,10 @@ header{position:sticky;top:0;padding-top:max(12px,env(safe-area-inset-top))!impo
 .it:active{transform:scale(.96)}
 .it .ic{font-size:26px;line-height:1.2}
 .it .lb{font-weight:700;font-size:15px}
+.it .cnt{font-size:11px;font-weight:700;background:rgba(255,255,255,.55);border-radius:999px;padding:0 7px;margin-top:2px}
+.it.on .cnt{background:rgba(255,255,255,.25)}
+.stat .per{font-size:11px;margin-left:auto;opacity:.8}
+.hist{font-size:13px;color:var(--sub);background:var(--shave-bg);border-radius:10px;padding:4px 10px;margin:-2px 0 10px}
 .it .dt{font-size:11.5px;min-height:16px;opacity:.9}
 .it.nail{background:var(--nail-bg)} .it.ear{background:var(--ear-bg)} .it.shave{background:var(--shave-bg)}
 .it.on.nail{background:var(--nail);color:#fff} .it.on.ear{background:var(--ear);color:#fff} .it.on.shave{background:var(--shave);color:#fff}
@@ -188,7 +192,7 @@ const ITEMS=[
   {k:'shave',lb:'髭剃り',ic:'🪒',color:'var(--shave)',daily:true}
 ];
 const WD=['日','月','火','水','木','金','土'];
-const ENC_ROSTER={"salt": "Zdo4I2yOyQmr/NjG/hAoyg==", "iv": "iO4a3xrw+U6kh33Z", "ct": "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", "iter": 200000};
+const ENC_ROSTER={"salt": "5zCtdiMGkA7aMDDY6PC7wA==", "iv": "9O3mqRSL0COjdndr", "ct": "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", "iter": 200000};
 const KEY='seiyou-check-web-v1';
 
 const SAMPLE=[];
@@ -252,10 +256,10 @@ function render(){
     const tgt=S.people.filter(p=>p.items.includes(it.k));
     const done=tgt.filter(p=>isDone(p,it,R)).length;
     const pct=tgt.length?Math.round(done/tgt.length*100):0;
-    if(it.daily) return `<div class="stat"><div class="l">${it.ic} ${it.lb}（${isCur()?'今日':'今月'}）</div>
-      <div class="n">${done}<small> 人${isCur()?'実施':'が実施'}</small></div>
+    if(it.daily) return `<div class="stat"><div class="l">${it.ic} ${it.lb}</div>
+      <div class="n">${isCur()?done:S.people.reduce((a,p)=>a+dailyDates(p.id,view.ym).length,0)}<small>${isCur()?' 人 今日':' 回 今月'}</small></div>
       <div class="bar"><i style="width:${pct}%;background:${it.color}"></i></div></div>`;
-    return `<div class="stat"><div class="l">${it.ic} ${it.lb}（今月）</div>
+    return `<div class="stat"><div class="l">${it.ic} ${it.lb}<span class="per">今月</span></div>
       <div class="n">${done}<small> / ${tgt.length}人</small></div>
       <div class="bar"><i style="width:${pct}%;background:${it.color}"></i></div></div>`;
   }).join('');
@@ -285,7 +289,7 @@ function render(){
     const complete=ITEMS.every(it=>!p.items.includes(it.k)||isDone(p,it,R));
     return `<div class="person ${complete?'complete':''}">
       <div class="ph"><div><span class="kana">${esc(p.kana)}</span><span class="name">${esc(p.name)}</span>${complete?'<span class="done-badge">完了</span>':''}</div>
-      <div class="days">${p.days.map(d=>WD[d]).join('・')}</div></div>
+      <div class="days">${p.days.map(d=>WD[d]).join('・')}</div></div>${p.items.includes('shave')?(()=>{const ds=dailyDates(p.id,view.ym);return ds.length?`<div class="hist">🪒 今月${ds.length}回：${ds.map(dshort).join('　')}</div>`:''})():''}
       <div class="btns">${ITEMS.map(it=>{
         if(!p.items.includes(it.k)) return `<button class="it na" disabled><span class="ic">${it.ic}</span><span class="lb">${it.lb}</span><span class="dt">対象外</span></button>`;
         if(it.daily){
@@ -294,7 +298,7 @@ function render(){
           const x=dailyGet(p.id),last=lastDaily(p.id);
           return `<button class="it ${it.k} ${x?'on':''}" data-p="${p.id}" data-k="${it.k}">
           <span class="ic">${it.ic}</span><span class="lb">${it.lb}</span>
-          <span class="dt">${x?'今日 済'+(x.by?' '+esc(x.by):''):last?'前回 '+dshort(last):'今日 まだ'}</span></button>`;
+          <span class="dt">${x?'今日 済':'今日 まだ'}</span><span class="cnt">今月 ${n}回</span></button>`;
         }
         const x=r[it.k];
         return `<button class="it ${it.k} ${x?'on':''}" data-p="${p.id}" data-k="${it.k}">
