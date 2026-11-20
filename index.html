@@ -82,7 +82,8 @@ header{position:sticky;top:0;padding-top:max(12px,env(safe-area-inset-top))!impo
 .it.on .cnt{background:rgba(255,255,255,.25)}
 .stat .per{font-size:11px;margin-left:auto;opacity:.8}
 .hist .undo{border:0;background:var(--card);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--ink);white-space:nowrap;margin-left:auto}
-.hist{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);background:var(--shave-bg);border-radius:10px;padding:4px 10px;margin:-2px 0 10px}
+.hist.nail{background:var(--nail-bg)}
+.hist{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);background:var(--shave-bg);border-radius:10px;padding:4px 10px;margin:0 0 6px}
 .it .dt{font-size:11.5px;min-height:16px;opacity:.9}
 .it.nail{background:var(--nail-bg)} .it.ear{background:var(--ear-bg)} .it.shave{background:var(--shave-bg)}
 .it.on.nail{background:var(--nail);color:#fff} .it.on.ear{background:var(--ear);color:#fff} .it.on.shave{background:var(--shave);color:#fff}
@@ -189,13 +190,13 @@ textarea.field{min-height:130px;font-size:14px}
 <script>
 (function(){
 const ITEMS=[
-  {k:'nail',lb:'爪切り',ic:'✂️',color:'var(--nail)'},
+  {k:'nail',lb:'爪切り',ic:'✂️',color:'var(--nail)',daily:true},
   {k:'ear',lb:'耳掃除',ic:'👂',color:'var(--ear)'},
   {k:'shave',lb:'髭剃り',ic:'🪒',color:'var(--shave)',daily:true}
 ];
 const WD=['日','月','火','水','木','金','土'];
-const ENC_ROSTER={"salt": "aagq1l0YfznF8Sco4lMyUw==", "iv": "FpsE7hAtHfepyE4e", "ct": "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", "iter": 200000};
-const BUILD='1120-1112';
+const ENC_ROSTER={"salt": "LnVW/ZA+asgjeqIJWbWBSw==", "iv": "jP1YjHAvQjc5bqYe", "ct": "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", "iter": 200000};
+const BUILD='1120-1121';
 // 公開版：新しい版が出ていたら自動で読み直す（iPadの古い画面が残らないように）
 async function checkUpdate(){
   if(BUILD==='dev'||!/^https?:/.test(location.protocol))return;
@@ -220,18 +221,19 @@ function personFrom(name,kana,sex,days){
 personFrom.n=0;
 function parseDays(s){s=s||'';const r=[];WD.forEach((w,i)=>{if(s.includes(w))r.push(i)});return r}
 function load(){
-  try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.people){j.log=j.log||[];if(j.daily){for(const d in j.daily)for(const pid in j.daily[d])j.log.push({pid,d,at:j.daily[d][pid].at,by:j.daily[d][pid].by||''});delete j.daily}return j}}catch(e){}
+  try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.people){j.log=j.log||[];if(!j.nailMig){for(const ym in j.records||{})for(const pid in j.records[ym]){const x=j.records[ym][pid].nail;if(x){const t=new Date(x.at);j.log.push({pid,k:'nail',d:ymOf(t)+'-'+String(t.getDate()).padStart(2,'0'),at:x.at,by:x.by||''});delete j.records[ym][pid].nail}}j.nailMig=1}if(j.daily){for(const d in j.daily)for(const pid in j.daily[d])j.log.push({pid,d,at:j.daily[d][pid].at,by:j.daily[d][pid].by||''});delete j.daily}return j}}catch(e){}
   return {people:SAMPLE.map(a=>personFrom(...a)),records:{},log:[],staff:'',sample:false};
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('⚠ 保存できませんでした')}}
 function rec(ym){return S.records[ym]||(S.records[ym]={})}
 function dkey(d){d=d||new Date();return ymOf(d)+'-'+String(d.getDate()).padStart(2,'0')}
 function isCur(){return view.ym===ymOf(new Date())}
-function dailyGet(pid){const t=dkey();return S.log.filter(e=>e.pid===pid&&e.d===t).length}
-function dailyDates(pid,ym){return S.log.filter(e=>e.pid===pid&&e.d.startsWith(ym+'-')).map(e=>e.d).sort()}
+function lk(e){return e.k||'shave'}
+function dailyGet(pid,k){const t=dkey();return S.log.filter(e=>e.pid===pid&&lk(e)===k&&e.d===t).length}
+function dailyDates(pid,ym,k){return S.log.filter(e=>e.pid===pid&&lk(e)===k&&e.d.startsWith(ym+'-')).map(e=>e.d).sort()}
 function dlist(ds){const c={};ds.forEach(d=>c[d]=(c[d]||0)+1);return Object.keys(c).sort().map(d=>dshort(d)+(c[d]>1?'×'+c[d]:'')).join('　')}
 function dshort(d){const [,m,dd]=d.split('-');return (+m)+'/'+(+dd)}
-function isDone(p,it,R){if(it.daily)return isCur()?!!dailyGet(p.id):dailyDates(p.id,view.ym).length>0;return !!(R[p.id]&&R[p.id][it.k])}
+function isDone(p,it,R){if(it.daily)return isCur()?!!dailyGet(p.id,it.k):dailyDates(p.id,view.ym,it.k).length>0;return !!(R[p.id]&&R[p.id][it.k])}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function fmtDate(iso){const d=new Date(iso);return (d.getMonth()+1)+'/'+d.getDate()}
 function ask(msg,yes,danger,noBtn){return new Promise(res=>{
@@ -268,7 +270,7 @@ function render(){
     const done=tgt.filter(p=>isDone(p,it,R)).length;
     const pct=tgt.length?Math.round(done/tgt.length*100):0;
     if(it.daily) return `<div class="stat"><div class="l">${it.ic} ${it.lb}</div>
-      <div class="n">${isCur()?S.log.filter(e=>e.d===dkey()).length:S.log.filter(e=>e.d.startsWith(view.ym+'-')).length}<small>${isCur()?' 回 今日':' 回 今月'}</small></div>
+      <div class="n">${isCur()?S.log.filter(e=>lk(e)===it.k&&e.d===dkey()).length:S.log.filter(e=>lk(e)===it.k&&e.d.startsWith(view.ym+'-')).length}<small>${isCur()?' 回 今日':' 回 今月'}</small></div>
       <div class="bar"><i style="width:${pct}%;background:${it.color}"></i></div></div>`;
     return `<div class="stat"><div class="l">${it.ic} ${it.lb}<span class="per">今月</span></div>
       <div class="n">${done}<small> / ${tgt.length}人</small></div>
@@ -300,13 +302,13 @@ function render(){
     const complete=ITEMS.every(it=>!p.items.includes(it.k)||isDone(p,it,R));
     return `<div class="person ${complete?'complete':''}">
       <div class="ph"><div><span class="kana">${esc(p.kana)}</span><span class="name">${esc(p.name)}</span>${complete?'<span class="done-badge">完了</span>':''}</div>
-      <div class="days">${p.days.map(d=>WD[d]).join('・')}</div></div>${p.items.includes('shave')?(()=>{const ds=dailyDates(p.id,view.ym);return ds.length?`<div class="hist"><span>🪒 ${isCur()?'今月':''}${ds.length}回：${dlist(ds)}</span><button class="undo" data-undo="${p.id}">1回もどす</button></div>`:''})():''}
+      <div class="days">${p.days.map(d=>WD[d]).join('・')}</div></div>${ITEMS.filter(it=>it.daily&&p.items.includes(it.k)).map(it=>{const ds=dailyDates(p.id,view.ym,it.k);return ds.length?`<div class="hist ${it.k}"><span>${it.ic} ${isCur()?'今月':''}${ds.length}回：${dlist(ds)}</span><button class="undo" data-undo="${p.id}" data-uk="${it.k}">1回もどす</button></div>`:''}).join('')}
       <div class="btns">${ITEMS.map(it=>{
         if(!p.items.includes(it.k)) return `<button class="it na" disabled><span class="ic">${it.ic}</span><span class="lb">${it.lb}</span><span class="dt">対象外</span></button>`;
         if(it.daily){
-          const n=dailyDates(p.id,view.ym).length;
+          const n=dailyDates(p.id,view.ym,it.k).length;
           if(!isCur()) return `<button class="it ${it.k} ${n?'on':''}" disabled><span class="ic">${it.ic}</span><span class="lb">${it.lb}</span><span class="dt">今月 ${n}回</span></button>`;
-          const x=dailyGet(p.id);
+          const x=dailyGet(p.id,it.k);
           return `<button class="it ${it.k} ${x?'on':''}" data-p="${p.id}" data-k="${it.k}">
           <span class="ic">${it.ic}</span><span class="lb">${it.lb} ＋1</span>
           <span class="dt">${x?'今日 '+x+'回':'今日 まだ'}</span><span class="cnt">今月 ${n}回</span></button>`;
@@ -329,18 +331,18 @@ document.getElementById('chips').onclick=e=>{const f=e.target.dataset.f;if(f){vi
 document.getElementById('list').onclick=async e=>{
   const u=e.target.closest('[data-undo]');
   if(u){
-    const pid=u.dataset.undo,p=S.people.find(x=>x.id===pid);
-    const mine=S.log.map((e,i)=>[e,i]).filter(([e])=>e.pid===pid&&e.d.startsWith(view.ym+'-'));if(!mine.length)return;
+    const pid=u.dataset.undo,uk=u.dataset.uk,p=S.people.find(x=>x.id===pid),ui=ITEMS.find(i=>i.k===uk);
+    const mine=S.log.map((e,i)=>[e,i]).filter(([e])=>e.pid===pid&&lk(e)===uk&&e.d.startsWith(view.ym+'-'));if(!mine.length)return;
     const [last,idx]=mine.sort((a,b)=>a[0].at<b[0].at?-1:1)[mine.length-1];
-    if(!await ask(`${p.name}さんの髭剃りを1回もどしますか？（${dshort(last.d)}の分）`,'1回もどす',true))return;
+    if(!await ask(`${p.name}さんの${ui.lb}を1回もどしますか？（${dshort(last.d)}の分）`,'1回もどす',true))return;
     S.log.splice(idx,1);save();render();toast('1回もどしました');return;
   }
   const b=e.target.closest('.it[data-p]');if(!b)return;
   const R=rec(view.ym),pid=b.dataset.p,k=b.dataset.k;
   const p=S.people.find(x=>x.id===pid), it=ITEMS.find(i=>i.k===k);
   if(it.daily){
-    S.log.push({pid,d:dkey(),at:new Date().toISOString(),by:S.staff||''});
-    toast(`${it.ic} ${p.name}さん ${it.lb} 今月${dailyDates(pid,view.ym).length}回目`);
+    S.log.push({pid,k,d:dkey(),at:new Date().toISOString(),by:S.staff||''});
+    toast(`${it.ic} ${p.name}さん ${it.lb} 今月${dailyDates(pid,view.ym,k).length}回目`);
     if(navigator.vibrate)navigator.vibrate(15);
     save();render();return;
   }
@@ -471,7 +473,7 @@ function table(){
   const lines=[['名前',...ITEMS.flatMap(i=>i.daily?[i.lb+'_回数',i.lb+'_実施日']:[i.lb+'_日付',i.lb+'_記録者'])]];
   sorted().forEach(p=>{const r=R[p.id]||{};lines.push([p.name,...ITEMS.flatMap(i=>{
     if(!p.items.includes(i.k))return ['対象外',''];
-    if(i.daily){const ds=dailyDates(p.id,view.ym);return [ds.length+'回',dlist(ds)]}
+    if(i.daily){const ds=dailyDates(p.id,view.ym,i.k);return [ds.length+'回',dlist(ds)]}
     return r[i.k]?[new Date(r[i.k].at).toLocaleDateString('ja-JP'),r[i.k].by]:['',''];})])});
   return lines;
 }
@@ -479,7 +481,7 @@ function buildPrint(){
   const [y,m]=view.ym.split('-');const R=rec(view.ym);
   document.getElementById('printArea').innerHTML=`<h1>整容チェック表　${y}年${+m}月　デイサービスシャイン</h1>
   <table><thead><tr><th>利用者</th>${ITEMS.map(i=>`<th>${i.lb}</th>`).join('')}</tr></thead><tbody>
-  ${sorted().map(p=>{const r=R[p.id]||{};return `<tr><td>${esc(p.name)}</td>${ITEMS.map(i=>`<td>${!p.items.includes(i.k)?'―':i.daily?(()=>{const ds=dailyDates(p.id,view.ym);return ds.length?ds.length+'回（'+dlist(ds)+'）':''})():r[i.k]?'✓ '+fmtDate(r[i.k].at)+(r[i.k].by?' '+esc(r[i.k].by):''):''}</td>`).join('')}</tr>`}).join('')}
+  ${sorted().map(p=>{const r=R[p.id]||{};return `<tr><td>${esc(p.name)}</td>${ITEMS.map(i=>`<td>${!p.items.includes(i.k)?'―':i.daily?(()=>{const ds=dailyDates(p.id,view.ym,i.k);return ds.length?ds.length+'回（'+dlist(ds)+'）':''})():r[i.k]?'✓ '+fmtDate(r[i.k].at)+(r[i.k].by?' '+esc(r[i.k].by):''):''}</td>`).join('')}</tr>`}).join('')}
   </tbody></table>`;
 }
 function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
