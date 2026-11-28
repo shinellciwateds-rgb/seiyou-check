@@ -314,7 +314,7 @@ const TPL = [
   '自らトイレへ行かれる。','尿意の訴えあり、トイレ誘導する。','パッド交換を実施する。','リハビリパンツ交換を実施する。','オムツ交換を実施する。','尿失禁あり、更衣する。','便失禁あり、陰部洗浄する。',
   '普通便あり。','軟便あり。','硬便あり。','水様便あり、看護師へ報告。','排便あり（中量）。','排便なし。','便秘気味のため、水分摂取を促す。','ズボンの上げ下げのみ介助する。','ポータブルトイレ使用。','陰部の発赤あり、看護師へ報告。']},
  {c:'入浴', k:['bath'], t:[
-  '一般浴にて入浴される。','機械浴にて入浴される。','シャワー浴を実施する。','清拭を実施する。','洗身は一部介助、洗髪は全介助。','洗身は自分でされ、背中のみ介助する。','洗髪を実施する。',
+  '一般浴にて入浴される。','リフト浴にて入浴される。','シャワー浴を実施する。','清拭を実施する。','洗身は一部介助、洗髪は全介助。','洗身は自分でされ、背中のみ介助する。','洗髪を実施する。',
   '浴槽内で気持ちよさそうにされる。','「気持ちよかった」と笑顔で話される。','入浴後、保湿剤を塗布する。','入浴後、軟膏を塗布する。','入浴後、水分補給される。','皮膚状態異常なし。',
   '背部に発赤あり、看護師へ報告。','臀部に発赤あり、看護師へ報告。','下肢に浮腫あり。','皮膚の乾燥あり、保湿剤塗布。','皮下出血あり、看護師へ報告。','表皮剥離あり、処置する。','爪切りを実施する。','耳掃除を実施する。','ひげ剃りを実施する。',
   'バイタル不良のため入浴中止とする。','本人の希望により入浴中止とする。','入浴拒否あり、時間を置いて再度声掛けするも拒否のため中止。','入浴を嫌がられたが、声掛けにて入浴される。','入浴中、ふらつきあり、見守り強化する。']},
@@ -425,7 +425,7 @@ function demoState(){
     add(uid,'09:'+String(10+k*3).padStart(2,'0'),'vital',{t,sys:String(k===2?168:sys),dia:String(dia),p:String(p),o:String(o)},k%2?'看護 A':'看護 B');
     add(uid,'10:'+String(5+k*2).padStart(2,'0'),'water',{ml:'150',what:'お茶'},'介護 A');
     if(k===0||k===3) add(uid,'14:'+String(30+k).padStart(2,'0'),'water',k?{ml:'150',what:'ココア',yen:'50'}:{ml:'150',what:'ホットコーヒー',yen:'50'},'介護 C');
-    if(k<6) add(uid,'10:'+String(20+k*4).padStart(2,'0'),'bath',{how:k===4?'機械浴':'一般浴',hair:'洗髪あり',memo:''},'介護 B');
+    if(k<6) add(uid,'10:'+String(20+k*4).padStart(2,'0'),'bath',{how:k===4?'リフト浴':'一般浴',hair:'洗髪あり',memo:''},'介護 B');
     if(k<8) add(uid,'12:'+String(10+k).padStart(2,'0'),'meal',{main:['10','8','10','5'][k%4],side:['10','8','5','10','8'][k%5],memo:k===6?'ムセなし':''},'介護 C');
     if(k<5) add(uid,'12:'+String(40+k).padStart(2,'0'),'med',{when:'昼食後',how:k===2?'介助で服用':'声掛けで服用'},'看護 A');
     if(k%3===0) add(uid,'11:'+String(15+k).padStart(2,'0'),'toilet',{type:'尿',where:'トイレ',amt:'中',memo:'自立'},'介護 A');
@@ -609,7 +609,7 @@ function viewBulk(){
       h+=pc('お迎え')+pc('お送り');
     }
     if(bulkKind==='bath'){
-      h+=`<td><div class="minis">${['一般浴','機械浴','シャワー浴','清拭','中止','なし'].map(v=>`<button class="mini ${(first?x.how:'')===v?'on':''}" data-act="bb" data-v="${v}">${v}</button>`).join('')}</div></td><td class="saved">${first?'✓ '+first.time:''}</td>`;
+      h+=`<td><div class="minis">${['一般浴','リフト浴','シャワー浴','清拭','中止','なし'].map(v=>`<button class="mini ${(first?x.how:'')===v?'on':''}" data-act="bb" data-v="${v}">${v}</button>`).join('')}</div></td><td class="saved">${first?'✓ '+first.time:''}</td>`;
     }
     h+='</tr>';
   });
@@ -737,7 +737,7 @@ function openSheet(uid,kind,entry){
       <div class="field"><label>メモ</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('toilet','memo')}</div>`;
   }
   if(kind==='bath'){
-    body=`<div class="field"><label>入浴方法</label>${opts('how',['一般浴','機械浴','シャワー浴','清拭','中止'],x.how||'一般浴')}</div>
+    body=`<div class="field"><label>入浴方法</label>${opts('how',['一般浴','リフト浴','シャワー浴','清拭','中止'],x.how||'一般浴')}</div>
       <div class="field"><label>洗髪</label>${opts('hair',['洗髪あり','洗髪なし'],x.hair||'洗髪あり')}</div>
       <div class="field"><label>メモ（皮膚の状態など）</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('bath','memo')}</div>`;
   }
