@@ -939,7 +939,7 @@ function viewRenrakuEdit(uid){
 function bookHTML(uid){
   const u=userById(uid); const r=getR(uid)||{}; const x=daySummary(uid);
   const vt=x.v?[x.v.t&&`体温 ${esc(x.v.t)}℃`,x.v.sys&&`血圧 ${esc(x.v.sys)}/${esc(x.v.dia)}`,x.v.p&&`脈拍 ${esc(x.v.p)}`].filter(Boolean).join('　'):'—';
-  return `<div class="book"><div class="bt"><div><h4>デイサービスシャイン　れんらくちょう</h4><b>${esc(u.n)} 様</b></div><span>${cur.getFullYear()}年${cur.getMonth()+1}月${cur.getDate()}日（${W[cur.getDay()]}）</span></div>
+  return `<div class="book"><div class="bt"><div><h4>デイサービスシャイン　連絡帳</h4><b>${esc(u.n)} 様</b></div><span>${cur.getFullYear()}年${cur.getMonth()+1}月${cur.getDate()}日（${W[cur.getDay()]}）</span></div>
     <table><tr><td>健康チェック</td><td>${vt}</td></tr>
     <tr><td>お食事</td><td>${x.meal?`主食 ${esc(x.meal.main||'-')}割　おかず ${esc(x.meal.side||'-')}割`:'—'}</td></tr>
     <tr><td>お風呂</td><td>${x.bath?esc(x.bath.how):'—'}</td></tr>
