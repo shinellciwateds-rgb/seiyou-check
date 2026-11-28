@@ -78,7 +78,7 @@ main{padding-top:16px}
 .chip.done{color:#fff}
 .chip.k-vital.done{background:var(--c-vital)} .chip.k-meal.done{background:var(--c-meal)} .chip.k-water.done{background:var(--c-water)}
 .chip.k-toilet.done{background:var(--c-toilet)} .chip.k-bath.done{background:var(--c-bath)} .chip.k-note.done{background:var(--c-note)}
-.chip.k-nap.done{background:var(--c-nap)} .chip.k-pick.done{background:var(--c-pick)} .chip.k-med.done{background:var(--c-med)} .chip.k-care.done{background:var(--c-care)} .chip.k-train.done{background:var(--c-train)}
+.chip.k-nap.done{background:var(--c-nap)} .chip.plan{background:#fff;border:1.5px dashed var(--c-bath);color:var(--c-bath);font-weight:800} .chip.k-pick.done{background:var(--c-pick)} .chip.k-med.done{background:var(--c-med)} .chip.k-care.done{background:var(--c-care)} .chip.k-train.done{background:var(--c-train)}
 .ucard .last{font-size:13px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .empty{background:var(--card);border-radius:var(--r);padding:40px 20px;text-align:center;color:var(--sub)}
 
@@ -448,7 +448,8 @@ const W='日月火水木金土';
 function dayStr(){return ymd(cur)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function userById(id){return S.users.find(u=>u.id===id)}
-function todayIds(){const d=dayStr(); if(!S.att[d]){ S.att[d]= S.demo?attDefault(d,S.users):[]; save(); } return S.att[d].filter(id=>userById(id));}
+function todayIds(){const d=dayStr(); if(!S.att[d]){ S.att[d]= (S.plan&&S.plan[d])?S.plan[d].slice():S.demo?attDefault(d,S.users):[]; save(); } return S.att[d].filter(id=>userById(id));}
+function bathPlanned(uid){ const b=S.bathPlan&&S.bathPlan[dayStr()]; return !!(b&&b.includes(uid)); }
 function entriesOf(uid,d=dayStr()){return S.entries.filter(e=>e.d===d&&e.uid===uid).sort((a,b)=>a.time.localeCompare(b.time))}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1800)}
 
@@ -502,7 +503,7 @@ function render(){
   bindMain();
 }
 function banner(){
-  return `<div class="note-banner noprint">ℹ️ <div><b>試作版です。</b>記録はこのiPadの中だけに保存されます（他のiPadとは共有されません）。名前はサンプルです。</div></div>`;
+  return `<div class="note-banner noprint">ℹ️ <div><b>試作版です。</b>記録はこのiPadの中だけに保存されます（他のiPadとは共有されません）。${S.demo?'名前はサンプルです。':''}</div></div>`;
 }
 function statusChips(uid){
   const es=entriesOf(uid); const has=k=>es.some(e=>e.kind===k);
@@ -513,7 +514,7 @@ function statusChips(uid){
   const c=(k,label,on)=>`<span class="chip k-${k} ${on?'done':''}">${label}</span>`;
   const pk=es.filter(e=>e.kind==='pick'); const pin=pk.find(e=>e.data.dir==='お迎え'), pout=pk.find(e=>e.data.dir==='お送り');
   const fee=feesOf(uid).reduce((a,x)=>a+x.yen,0);
-  return (fee?`<span class="chip k-water done" style="background:var(--amber)">諸費用 ${fee}円</span>`:'')+c('pick',pout?`送迎 ${pin?pin.time+'〜':''}${pout.time}`:pin?`お迎え ${pin.time}`:'送迎',pk.length>0)+c('vital','バイタル',has('vital'))+c('meal',meal?`食事 ${meal.data.main||'-'}/${meal.data.side||'-'}`:'食事',!!meal)+c('water',ml?`水分 ${ml}ml`:'水分',ml>0)+c('toilet',tc?`排泄 ${tc}回`:'排泄',tc>0)+c('bath',bath?`入浴 ${bath.data.how}`:'入浴',!!bath)+c('med','服薬',has('med'))+c('note','様子',has('note'));
+  return (fee?`<span class="chip k-water done" style="background:var(--amber)">諸費用 ${fee}円</span>`:'')+c('pick',pout?`送迎 ${pin?pin.time+'〜':''}${pout.time}`:pin?`お迎え ${pin.time}`:'送迎',pk.length>0)+c('vital','バイタル',has('vital'))+c('meal',meal?`食事 ${meal.data.main||'-'}/${meal.data.side||'-'}`:'食事',!!meal)+c('water',ml?`水分 ${ml}ml`:'水分',ml>0)+c('toilet',tc?`排泄 ${tc}回`:'排泄',tc>0)+(bath||!bathPlanned(uid)?c('bath',bath?`入浴 ${bath.data.how}`:'入浴',!!bath):'<span class="chip plan">🛁 入浴予定</span>')+c('med','服薬',has('med'))+c('note','様子',has('note'));
 }
 function vitalAlert(uid){
   const v=entriesOf(uid).filter(e=>e.kind==='vital').pop(); if(!v) return '';
@@ -818,15 +819,75 @@ function openStaffPicker(cb){
 }
 function openAttPicker(){
   const d=dayStr(); const set=new Set(todayIds());
-  sh.innerHTML=`<h3>本日の利用者を選ぶ</h3><div class="who">${cur.getMonth()+1}月${cur.getDate()}日に来られる方をタップ（本番では予定表から自動で入る想定）</div>
+  sh.innerHTML=`<h3>本日の利用者を選ぶ</h3><div class="who">${cur.getMonth()+1}月${cur.getDate()}日に来られる方をタップ${S.plan&&S.plan[d]?'（予定表から入っています）':''}</div>
+    <label class="addph" style="margin:8px 0 12px">📅 ナーシングネットの利用月間予定表（Excel）を読み込む<input type="file" accept=".xlsm,.xlsx,.xls" id="planFile"></label>
     <div class="list-pick">${S.users.map(u=>`<button class="opt ${set.has(u.id)?'on':''}" data-id="${u.id}">${esc(u.n)}</button>`).join('')}</div>
     <div class="acts"><button class="btn primary" id="ok">決定</button></div>`;
   ov.classList.add('show');
   sh.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>b.classList.toggle('on'));
+  document.getElementById('planFile').onchange=e=>{ const f=e.target.files[0]; e.target.value=''; if(f) importPlan(f); };
   document.getElementById('ok').onclick=()=>{
     const on=[...sh.querySelectorAll('[data-id].on')].map(b=>b.dataset.id);
     S.att[d]=S.users.map(u=>u.id).filter(id=>on.includes(id)); save(); closeSheet(); render();
   };
+}
+/* ===== ナーシングネットの利用月間予定表（xlsm）を読み込む ===== */
+async function importPlan(file){
+  toast('予定表を読み込んでいます…');
+  let P;
+  try{
+    if(!window.XLSX) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+    const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+    const ws=wb.Sheets['予定']||wb.Sheets[wb.SheetNames[0]];
+    P=parsePlan(XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false}));
+  }catch(err){ toast('予定表を読み込めませんでした'); return; }
+  if(!P.people.length){ toast('予定表の形が違うようです（「予定」シートの氏名の行が見つかりません）'); return; }
+  const key=n=>String(n).replace(/[\s　]/g,'');
+  const known=new Set(S.demo?[]:S.users.map(u=>key(u.n)));
+  const add=P.people.filter(p=>!known.has(key(p.n))).length;
+  const visits=P.people.reduce((a,p)=>a+p.days.length,0), baths=P.people.reduce((a,p)=>a+p.bath.length,0);
+  sh.innerHTML=`<h3>📅 ${P.y}年${P.m}月の予定表</h3>
+    <div class="who">${P.people.length}名・延べ${visits}回（入浴の予定 ${baths}回）</div>
+    <div class="hint" style="font-size:15px;line-height:1.7">${S.demo?'<b>サンプルの名前と記録は消えて、予定表の名前に入れ替わります。</b><br>':''}${add?`名簿にない${add}名を名簿に足します。<br>`:''}毎日の「本日の利用者」が予定表から自動で入ります。すでに記録がある日は、記録のある人も残します。</div>
+    <div class="list-pick" style="max-height:38vh;overflow:auto;margin-top:10px">${P.people.map(p=>`<div class="opt" style="display:flex;justify-content:space-between;align-items:center"><span>${esc(p.n)} <small class="hint">${esc(p.lv)}</small></span><small class="hint">${p.days.length}回${p.bath.length?'・入浴'+p.bath.length:''}</small></div>`).join('')}</div>
+    <div class="acts"><button class="btn ghost" id="cancel">やめる</button><button class="btn primary" id="ok">読み込む</button></div>`;
+  ov.classList.add('show');
+  document.getElementById('cancel').onclick=closeSheet;
+  document.getElementById('ok').onclick=()=>{
+    if(S.demo){ S.users=[]; S.entries=[]; S.renraku={}; S.att={}; S.demo=false; }
+    S.plan=S.plan||{}; S.bathPlan=S.bathPlan||{};
+    const idOf={};
+    P.people.forEach((p,i)=>{ let u=S.users.find(u=>key(u.n)===key(p.n));
+      if(!u){ u={id:'u'+Date.now().toString(36)+i,n:p.n,lv:p.lv,warn:''}; S.users.push(u); } else if(p.lv) u.lv=p.lv;
+      idOf[p.n]=u.id; });
+    const last=new Date(P.y,P.m,0).getDate();
+    for(let dd=1; dd<=last; dd++){
+      const d=`${P.y}-${String(P.m).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+      const ids=P.people.filter(p=>p.days.includes(dd)).map(p=>idOf[p.n]);
+      S.plan[d]=ids; S.bathPlan[d]=P.people.filter(p=>p.bath.includes(dd)).map(p=>idOf[p.n]);
+      const had=[...new Set(S.entries.filter(e=>e.d===d).map(e=>e.uid))];
+      if(ids.length||had.length) S.att[d]=[...new Set(ids.concat(had))]; else delete S.att[d];
+    }
+    if(cur.getFullYear()!==P.y||cur.getMonth()+1!==P.m){ const f=Object.keys(S.plan).sort().find(d=>d.startsWith(`${P.y}-${String(P.m).padStart(2,'0')}`)&&S.plan[d].length); if(f) cur=new Date(f+'T00:00'); }
+    save(); closeSheet(); personId=null; tab='list'; render(); toast(`${P.m}月の予定を読み込みました（${P.people.length}名）`);
+    if(synced()) api('POST',{action:'roster',names:S.users.map(u=>u.n)}).catch(()=>{});
+  };
+}
+function parsePlan(rows){
+  let y=0,m=0;
+  for(const r of rows.slice(0,6)) for(const c of r){ const t=String(c).match(/令和\s*(\d+)\s*年\s*(\d+)\s*月/); if(t){ y=2018+ +t[1]; m=+t[2]; } }
+  const hi=rows.findIndex(r=>r.includes('氏名')&&r.includes('項目'));
+  if(hi<0||!y) return {y,m,people:[]};
+  const H=rows[hi], nc=H.indexOf('氏名'), lc=H.indexOf('介護度'), ic=H.indexOf('項目');
+  const dayCol={}; H.forEach((c,i)=>{ const n=+c; if(String(c).trim()!==''&&n>=1&&n<=31&&i>ic) dayCol[n]=i; });
+  const marks=r=>Object.keys(dayCol).map(Number).filter(dd=>{ const v=String(r[dayCol[dd]]).trim(); return v&&v!=='-'; });
+  const people=[]; let curP=null;
+  rows.slice(hi+1).forEach(r=>{
+    const item=String(r[ic]).trim();
+    if(item==='利用'&&String(r[nc]).trim()){ curP={n:String(r[nc]).trim(),lv:String(r[lc]||'').trim(),days:marks(r),bath:[]}; if(curP.days.length) people.push(curP); }
+    else if(item==='入浴'&&curP) curP.bath=marks(r);
+  });
+  return {y,m,people};
 }
 function openSettings(){
   sh.innerHTML=`<h3>⚙ 設定（試作）</h3>
