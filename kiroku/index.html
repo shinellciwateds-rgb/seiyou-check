@@ -408,6 +408,7 @@ function load(){
   return demoState();
 }
 function save(){ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('⚠ 保存できませんでした')} }
+function canStore(){ try{ localStorage.setItem('kk_t','1'); localStorage.removeItem('kk_t'); return true; }catch(e){ return false; } }
 function demoState(){
   const users = DEMO_USERS.map((n,i)=>({id:'u'+(i+1),n,lv:DEMO_LV[i],warn:i===3?'降圧剤服用中・血圧注意':i===6?'嚥下注意（とろみ）':i===14?'皮膚剥離しやすい':''}));
   const st = {users,staff:DEMO_STAFF.slice(),me:'',att:{},entries:[],demo:true};
@@ -962,8 +963,13 @@ function bindRenraku(uid){
   document.getElementById('rtpl').onclick=()=>openTpl('renraku',msg);
   document.getElementById('rph').onchange=async e=>{
     const files=[...e.target.files]; e.target.value='';
-    for(const f of files){ try{ get().photos.push(await shrink(f)); }catch(err){ toast('写真を読み込めませんでした'); } }
-    try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(err){ get().photos.splice(-files.length); toast('⚠ iPadの保存容量がいっぱいです（試作版の制限）'); }
+    let ok=0, bad=0;
+    for(const f of files){ try{ get().photos.push(await shrink(f)); ok++; }catch(err){ bad++; } }
+    if(bad) toast(`写真を${bad}枚読み込めませんでした（HEIC形式はiPad・iPhone以外では開けないことがあります）`);
+    if(ok){ let stored=true; try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(err){ stored=false; }
+      // 保存できなくても写真は画面に残す（消さない）
+      if(!stored) toast(canStore()?'⚠ iPadの保存容量がいっぱいです。写真は表示していますが、閉じると消えます':'写真を入れました（この確認用ページでは、閉じると消えます）');
+      else if(!bad) toast(`写真を${ok}枚入れました`); }
     drawPh(); prev();
   };
   document.getElementById('rdone').onclick=()=>needStaff(()=>{const r=get(); r.done=!r.done; r.by=S.me; save(); render(); toast(r.done?'完成にしました':'作成中に戻しました');});
@@ -972,7 +978,10 @@ function bindRenraku(uid){
 function shrink(file){ return new Promise((res,rej)=>{ const url=URL.createObjectURL(file); const img=new Image();
   img.onload=()=>{ const m=900, sc=Math.min(1,m/Math.max(img.width,img.height)); const c=document.createElement('canvas'); c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc);
     c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg',0.72)); };
-  img.onerror=()=>{URL.revokeObjectURL(url);rej()}; img.src=url; }); }
+  img.onerror=()=>{URL.revokeObjectURL(url);
+    if(!window.createImageBitmap) return rej();
+    createImageBitmap(file).then(bm=>{ const m=900, sc=Math.min(1,m/Math.max(bm.width,bm.height)); const c=document.createElement('canvas'); c.width=Math.round(bm.width*sc); c.height=Math.round(bm.height*sc); c.getContext('2d').drawImage(bm,0,0,c.width,c.height); res(c.toDataURL('image/jpeg',0.72)); }).catch(rej); };
+  img.src=url; }); }
 
 /* ===== 印刷・PDF ===== */
 function dateJP(){return `${cur.getFullYear()}年${cur.getMonth()+1}月${cur.getDate()}日（${W[cur.getDay()]}）`}
