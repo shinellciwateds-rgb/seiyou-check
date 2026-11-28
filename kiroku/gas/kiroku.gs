@@ -3,7 +3,7 @@
  *
  * できること
  *  1. 介護記録アプリの連絡帳PDFを、今の連絡帳フォルダに「YYYYMMDD/連絡帳YYYYMMDD_名前様.pdf」で保存し、
- *     「連絡帳」シートにも1行足し、そのご家族にLINEで更新をお知らせする（ご家族のページにもすぐ出る）
+ *     「連絡帳」シートにも1行足す（ご家族のページにはすぐ出る。LINEのお知らせは管理アプリの16時の通知でまとめて送る）
  *  2. 公式アカウントをスタッフのグループLINEに入れておくと、「名前」→「写真」で写真をドライブに保存し、
  *     介護記録アプリの連絡帳に取り込めるようにする
  *  3. 合言葉（スクリプト プロパティ ADMIN_KEY）を入れると、管理用の機能を合言葉なしでは使えなくする
@@ -81,23 +81,8 @@ function kirokuUploadReport_(b){
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   var d = ymd.substring(0,4) + '/' + ymd.substring(4,6) + '/' + ymd.substring(6,8);
   var rep = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('連絡帳');
-  rep.appendRow([name, d, file.getId(), false]);                     // 5分ごとの同期を待たずに登録
-  var sent = (b.notify === false) ? 0 : kirokuNotifyReport_(name, ymd);
-  if (sent) rep.getRange(rep.getLastRow(), 4).setValue(true);       // 通知済みにする（16時の通知と二重にならない）
-  return {status:'ok', fileId: file.getId(), name: fname, notified: sent};
-}
-// 保存と同時にご家族へLINEでお知らせ（文面は管理アプリの連絡帳通知と同じ）。送った件数を返す
-function kirokuNotifyReport_(name, ymd){
-  var users = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('利用者リスト').getDataRange().getValues();
-  var date = parseInt(ymd.substring(4,6), 10) + '月' + parseInt(ymd.substring(6,8), 10) + '日';
-  var sent = 0;
-  for (var j = 1; j < users.length; j++) {
-    var u = users[j];
-    if (u[0] !== name || !u[1] || u[5] === false) continue;        // 名前が一致・LINE登録あり・通知ONの方だけ
-    sendLineMessage(u[1], '【連絡帳の更新】\n' + u[0] + ' 様\n\n' + date + 'の連絡帳が更新されました。\n以下のURLからご確認ください。\n\n' + BASE_URL + '?token=' + u[2]);
-    sent++;
-  }
-  return sent;
+  rep.appendRow([name, d, file.getId(), false]);                     // 5分ごとの同期を待たずに登録（通知は16時にまとめて）
+  return {status:'ok', fileId: file.getId(), name: fname};
 }
 // 経過記録など：介護記録_経過記録PDF / YYYY-MM / ファイル名（同じ名前は上書き）
 function kirokuUploadOther_(b){
