@@ -19,7 +19,7 @@
   --accent:#3b7fb0; --accent-bg:#e1eef8; --accent-ink:#ffffff;
   --red:#d55a4a; --red-bg:#fde7e3; --amber:#c98a1d; --amber-bg:#fcf0d6; --ok:#3f9a74; --ok-bg:#e0f2e9;
   --gray-bg:#eef1f4; --shadow:0 2px 12px rgba(30,55,80,.08); --r:16px;
-  --c-vital:#d5694f; --c-meal:#d9962b; --c-water:#3b8fc4; --c-toilet:#8a6cc1; --c-bath:#2f9fa0; --c-nap:#6d7fb8; --c-train:#4f9a5c; --c-note:#7d8791;
+  --c-vital:#d5694f; --c-meal:#d9962b; --c-water:#3b8fc4; --c-toilet:#8a6cc1; --c-bath:#2f9fa0; --c-nap:#6d7fb8; --c-train:#4f9a5c; --c-note:#7d8791; --c-pick:#b0607e;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -78,7 +78,7 @@ main{padding-top:16px}
 .chip.done{color:#fff}
 .chip.k-vital.done{background:var(--c-vital)} .chip.k-meal.done{background:var(--c-meal)} .chip.k-water.done{background:var(--c-water)}
 .chip.k-toilet.done{background:var(--c-toilet)} .chip.k-bath.done{background:var(--c-bath)} .chip.k-note.done{background:var(--c-note)}
-.chip.k-nap.done{background:var(--c-nap)} .chip.k-train.done{background:var(--c-train)}
+.chip.k-nap.done{background:var(--c-nap)} .chip.k-pick.done{background:var(--c-pick)} .chip.k-train.done{background:var(--c-train)}
 .ucard .last{font-size:13px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .empty{background:var(--card);border-radius:var(--r);padding:40px 20px;text-align:center;color:var(--sub)}
 
@@ -91,14 +91,14 @@ main{padding-top:16px}
 .phead h2{margin:0;font-size:24px}
 .phead .lv{color:var(--sub);font-size:15px}
 .kinds{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width:820px){.kinds{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:820px){.kinds{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:520px){.kinds{grid-template-columns:repeat(2,1fr)}}
 .kbtn{border:0;border-radius:14px;padding:14px 6px;min-height:84px;color:#fff;font-weight:800;font-size:17px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 .kbtn span{font-size:26px;line-height:1}
 .kbtn small{font-weight:600;font-size:12px;opacity:.9}
 .kbtn:active{filter:brightness(.92)}
 .k-vital.kbtn{background:var(--c-vital)} .k-meal.kbtn{background:var(--c-meal)} .k-water.kbtn{background:var(--c-water)} .k-toilet.kbtn{background:var(--c-toilet)}
-.k-bath.kbtn{background:var(--c-bath)} .k-nap.kbtn{background:var(--c-nap)} .k-train.kbtn{background:var(--c-train)} .k-note.kbtn{background:var(--c-note)}
+.k-bath.kbtn{background:var(--c-bath)} .k-nap.kbtn{background:var(--c-nap)} .k-train.kbtn{background:var(--c-train)} .k-note.kbtn{background:var(--c-note)} .k-pick.kbtn{background:var(--c-pick)}
 .sumrow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
 @media (max-width:620px){.sumrow{grid-template-columns:repeat(2,1fr)}}
 .sum{background:var(--gray-bg);border-radius:12px;padding:8px 10px}
@@ -115,7 +115,7 @@ main{padding-top:16px}
 .tl .by{width:90px;color:var(--sub);font-size:14px}
 .tag{display:inline-block;color:#fff;font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px;white-space:nowrap}
 .tag.k-vital{background:var(--c-vital)} .tag.k-meal{background:var(--c-meal)} .tag.k-water{background:var(--c-water)} .tag.k-toilet{background:var(--c-toilet)}
-.tag.k-bath{background:var(--c-bath)} .tag.k-nap{background:var(--c-nap)} .tag.k-train{background:var(--c-train)} .tag.k-note{background:var(--c-note)}
+.tag.k-bath{background:var(--c-bath)} .tag.k-nap{background:var(--c-nap)} .tag.k-train{background:var(--c-train)} .tag.k-note{background:var(--c-note)} .tag.k-pick{background:var(--c-pick)}
 .bad{color:var(--red);font-weight:800}
 
 /* bulk */
@@ -291,6 +291,10 @@ const TPL = [
   'ご家族より「便秘気味」との申し送りあり。','ご家族より「咳が出ている」との申し送りあり。','顔色良好。','顔色やや不良。','咳・鼻汁なし。','咳嗽あり、マスク着用していただく。',
   '鼻汁あり。','微熱あり、様子観察とする。','頭痛の訴えあり。','腰痛の訴えあり。','膝の痛みの訴えあり。','倦怠感の訴えあり。','めまいの訴えあり。','食欲がないとの訴えあり。',
   '体調の訴えなく、終日元気に過ごされる。','終日体調変化なく過ごされる。','特変なし。']},
+ {c:'送迎', k:['pick'], t:[
+  'お迎え時、玄関でお待ちになっていた。','お迎え時、ご家族より「昨夜はよく眠れた」との事。','お迎え時、ご家族より体調に変わりないとの事。','お迎え時、準備ができておらず、声掛けして支度を手伝う。',
+  '車いすで乗降される。','玄関から車まで手引き歩行で介助する。','段差で見守りを行う。','乗車時ふらつきあり、介助にて乗車される。','車内では穏やかに過ごされる。','車内で他利用者と会話を楽しまれる。','車内でうとうとされていた。',
+  'お送り時、ご家族へ本日の様子を申し送る。','お送り時、ご家族不在のため、玄関内まで誘導し施錠を確認する。','お送り時、居室まで誘導する。','連絡帳をご家族へお渡しする。','お薬・持ち物をご家族へお渡しする。','ご家族送迎にて来所される。','ご家族送迎にて帰宅される。','体調不良のため予定より早く送る。']},
  {c:'バイタル', k:['vital'], t:[
   'バイタル安定。','バイタル異常なし。','血圧高めのため、安静後に再検する。','再検にて血圧下降を確認。','再検でも血圧高値のため、看護師へ報告。','血圧低めのため様子観察とする。',
   '体温37.5℃以上のため、ご家族へ連絡する。','微熱のため、入浴は中止とする。','脈拍不整あり、看護師へ報告。','SpO2低値のため、深呼吸を促し再検する。','再検にて改善を確認。',
@@ -346,6 +350,7 @@ const TPL = [
 
 /* ===== 基本データ ===== */
 const KINDS = {
+  pick:{n:'送迎',i:'🚐',short:'送迎'},
   vital:{n:'バイタル',i:'🌡',short:'バイタル'},
   meal:{n:'食事',i:'🍚',short:'食事'},
   water:{n:'水分',i:'🥤',short:'水分'},
@@ -355,7 +360,7 @@ const KINDS = {
   train:{n:'機能訓練',i:'💪',short:'訓練'},
   note:{n:'様子',i:'📝',short:'様子'}
 };
-const KORDER = ['vital','meal','water','toilet','bath','nap','train','note'];
+const KORDER = ['pick','vital','meal','water','toilet','bath','nap','train','note'];
 const PHRASES = {
   note:['笑顔で過ごされる','他利用者と会話を楽しまれる','レクに参加される','穏やかに過ごされる','落ち着かない様子あり','眠そうにされている','ご家族へ連絡済み','特変なし'],
   vital:['再検あり','ご本人より体調良好との事','看護師へ報告済み'],
@@ -363,6 +368,7 @@ const PHRASES = {
   toilet:['自立','見守り','一部介助','全介助','失禁あり','パッド交換'],
   bath:['皮膚状態異常なし','発赤あり','軟膏塗布','爪切り実施','バイタル不良のため中止','本人拒否のため中止'],
   nap:['よく眠られる','横になるが眠らず'],
+  pick:['ご家族へ申し送り済み','体調変化なし','車いすで乗降','手引き歩行で介助','ご家族不在・施錠確認','連絡帳をお渡し'],
   train:['意欲的に取り組まれる','疲労の訴えあり','声掛けで実施']
 };
 const DEMO_USERS = ['青木 ハナ','石川 正男','上田 キヨ','遠藤 勝','大野 トミ子','加藤 実','木村 ヨシ','工藤 清','佐々木 ミツ','鈴木 弘','高田 フミ','千葉 一郎','中村 サダ','西田 健二','橋本 タケ','藤原 茂','松本 ユキ','村上 進','山口 チヨ','渡辺 博'];
@@ -386,6 +392,7 @@ function demoState(){
   const rnd = mulberry(7);
   const add=(uid,time,kind,data,by)=>st.entries.push({id:uid+kind+time+Math.random().toString(36).slice(2,6),d,uid,time,kind,data,by,ts:Date.now()});
   ids.slice(0,10).forEach((uid,k)=>{
+    add(uid,'08:'+String(30+k*2).padStart(2,'0'),'pick',{dir:'お迎え',how:k===5?'ご家族送迎':'送迎車',walk:k===4?'車いす':''},'介護 A');
     const t=(36+rnd()*1.1).toFixed(1), sys=Math.round(112+rnd()*45), dia=Math.round(64+rnd()*22), p=Math.round(62+rnd()*24), o=Math.round(94+rnd()*5);
     add(uid,'09:'+String(10+k*3).padStart(2,'0'),'vital',{t,sys:String(k===2?168:sys),dia:String(dia),p:String(p),o:String(o)},k%2?'看護 A':'看護 B');
     add(uid,'10:'+String(5+k*2).padStart(2,'0'),'water',{ml:'150',what:'お茶'},'介護 A');
@@ -434,6 +441,7 @@ function describe(e){
     case 'water': return `${esc(x.what||'水分')} ${esc(x.ml)}ml`+(x.memo?'　'+esc(x.memo):'');
     case 'toilet': return [x.type,x.where,x.amt&&('量 '+x.amt)].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
     case 'bath': return [x.how,x.how!=='中止'&&x.hair].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
+    case 'pick': return [x.dir,x.how,x.walk].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
     case 'nap': return `${esc(x.from||'')}〜${esc(x.to||'')}`+(x.memo?'　'+esc(x.memo):'');
     case 'train': return [x.what].filter(Boolean).map(esc).join('')+(x.memo?'　'+esc(x.memo):'');
     case 'note': return esc(x.text||'').replace(/\n/g,'<br>');
@@ -471,7 +479,8 @@ function statusChips(uid){
   const meal=es.find(e=>e.kind==='meal');
   const bath=es.find(e=>e.kind==='bath');
   const c=(k,label,on)=>`<span class="chip k-${k} ${on?'done':''}">${label}</span>`;
-  return c('vital','バイタル',has('vital'))+c('meal',meal?`食事 ${meal.data.main||'-'}/${meal.data.side||'-'}`:'食事',!!meal)+c('water',ml?`水分 ${ml}ml`:'水分',ml>0)+c('toilet',tc?`排泄 ${tc}回`:'排泄',tc>0)+c('bath',bath?`入浴 ${bath.data.how}`:'入浴',!!bath)+c('note','様子',has('note'));
+  const pk=es.filter(e=>e.kind==='pick'); const pin=pk.find(e=>e.data.dir==='お迎え'), pout=pk.find(e=>e.data.dir==='お送り');
+  return c('pick',pout?`送迎 ${pin?pin.time+'〜':''}${pout.time}`:pin?`お迎え ${pin.time}`:'送迎',pk.length>0)+c('vital','バイタル',has('vital'))+c('meal',meal?`食事 ${meal.data.main||'-'}/${meal.data.side||'-'}`:'食事',!!meal)+c('water',ml?`水分 ${ml}ml`:'水分',ml>0)+c('toilet',tc?`排泄 ${tc}回`:'排泄',tc>0)+c('bath',bath?`入浴 ${bath.data.how}`:'入浴',!!bath)+c('note','様子',has('note'));
 }
 function vitalAlert(uid){
   const v=entriesOf(uid).filter(e=>e.kind==='vital').pop(); if(!v) return '';
@@ -533,7 +542,7 @@ function describeShortVital(x){
 /* 一括入力 */
 function viewBulk(){
   const ids=todayIds();
-  const segs=[['vital','バイタル'],['meal','食事'],['water','水分'],['bath','入浴']];
+  const segs=[['pick','送迎'],['vital','バイタル'],['meal','食事'],['water','水分'],['bath','入浴']];
   let h=banner()+`<div class="bar"><div class="seg">${segs.map(([k,n])=>`<button data-act="bk" data-kind="${k}" class="${bulkKind===k?'on':''}">${KINDS[k].i} ${n}</button>`).join('')}</div>
     <div class="sp" style="flex:1"></div><span class="count">${ids.length}名</span></div>`;
   if(!ids.length) return h+`<div class="empty">この日の利用者がいません。「利用者一覧」で選んでください。</div>`;
@@ -542,6 +551,7 @@ function viewBulk(){
   if(bulkKind==='meal') h+='<th>主食（割）</th><th>副食（割）</th><th></th>';
   if(bulkKind==='water') h+='<th>水分を追加（お茶）</th><th>本日合計</th>';
   if(bulkKind==='bath') h+='<th>入浴</th><th></th>';
+  if(bulkKind==='pick') h+='<th>お迎え（到着）</th><th>お送り（出発）</th>';
   h+='</tr></thead><tbody>';
   ids.forEach(id=>{
     const u=userById(id); const es=entriesOf(id);
@@ -560,6 +570,10 @@ function viewBulk(){
       const ml=es.filter(e=>e.kind==='water').reduce((a,e)=>a+(+e.data.ml||0),0);
       h+=`<td><div class="minis">${['100','150','200','250'].map(v=>`<button class="mini" data-act="bw" data-v="${v}">＋${v}</button>`).join('')}</div></td><td style="font-weight:800;font-size:18px">${ml} ml</td>`;
     }
+    if(bulkKind==='pick'){
+      const pc=dir=>{const e=es.find(e=>e.kind==='pick'&&e.data.dir===dir); return `<td>${e?`<span class="saved" style="font-size:18px">✓ ${e.time}</span> <button class="mini" data-act="bp" data-v="${dir}" data-undo="1">取消</button>`:`<button class="mini" data-act="bp" data-v="${dir}">${dir==='お迎え'?'🚐 着いた':'🚐 出発'}</button>`}</td>`};
+      h+=pc('お迎え')+pc('お送り');
+    }
     if(bulkKind==='bath'){
       h+=`<td><div class="minis">${['一般浴','機械浴','シャワー浴','清拭','中止','なし'].map(v=>`<button class="mini ${(first?x.how:'')===v?'on':''}" data-act="bb" data-v="${v}">${v}</button>`).join('')}</div></td><td class="saved">${first?'✓ '+first.time:''}</td>`;
     }
@@ -567,6 +581,7 @@ function viewBulk(){
   });
   h+='</tbody></table></div>';
   if(bulkKind==='vital') h+=`<div class="hint" style="margin-top:8px">入力すると自動で保存されます。赤枠は目安外（体温37.5以上、血圧上160以上／90未満、脈拍100以上／50未満、SpO2 93未満）。目安は試作用の仮の値です。</div>`;
+  if(bulkKind==='pick') h+=`<div class="hint" style="margin-top:8px">押した時刻で送迎の記録が入ります（送迎車）。ご家族送迎や乗降の様子は、利用者の画面の「送迎」から直せます。</div>`;
   if(bulkKind==='water') h+=`<div class="hint" style="margin-top:8px">ボタンを押すたびに、その時刻で水分の記録が1件追加されます。間違えたら利用者の画面から削除できます。</div>`;
   return h;
 }
@@ -608,7 +623,7 @@ function bindMain(){
       else if(a==='toRenraku'){ tab='renraku'; render(); scrollTo(0,0); }
       else if(a==='ropen'){ personId=el.dataset.id; render(); scrollTo(0,0); }
       else if(a==='rback'){ personId=null; render(); }
-      else if(a==='bm'||a==='bb'||a==='bw'){ bulkTap(el,a); }
+      else if(a==='bm'||a==='bb'||a==='bw'||a==='bp'){ bulkTap(el,a); }
     };
   });
   document.querySelectorAll('#main input[data-bv]').forEach(inp=>{
@@ -637,6 +652,11 @@ function bulkTap(el,a){
       const d=dayStr();
       if(el.dataset.v==='なし'){ S.entries=S.entries.filter(x=>!(x.d===d&&x.uid===uid&&x.kind==='bath')); save(); }
       else upsertFirst(uid,'bath',{how:el.dataset.v,hair:'洗髪あり'});
+    }
+    if(a==='bp'){
+      const d=dayStr(), dir=el.dataset.v;
+      if(el.dataset.undo){ S.entries=S.entries.filter(x=>!(x.d===d&&x.uid===uid&&x.kind==='pick'&&x.data.dir===dir)); save(); }
+      else { S.entries.push({id:uid+'p'+Date.now().toString(36),d,uid,time:nowHM(),kind:'pick',data:{dir,how:'送迎車'},by:S.me,ts:Date.now()}); save(); toast(`${userById(uid).n} 様 ${dir} ${nowHM()}`); }
     }
     if(a==='bw'){ S.entries.push({id:uid+'w'+Date.now().toString(36),d:dayStr(),uid,time:nowHM(),kind:'water',data:{ml:el.dataset.v,what:'お茶'},by:S.me,ts:Date.now()}); save(); toast(`${userById(uid).n} 様 水分 ${el.dataset.v}ml`); }
     render();
@@ -682,6 +702,13 @@ function openSheet(uid,kind,entry){
       <div class="field"><label>洗髪</label>${opts('hair',['洗髪あり','洗髪なし'],x.hair||'洗髪あり')}</div>
       <div class="field"><label>メモ（皮膚の状態など）</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('bath','memo')}</div>`;
   }
+  if(kind==='pick'){
+    const back=+String(entry?entry.time:nowHM()).slice(0,2)>=13||entriesOf(uid).some(e=>e.kind==='pick'&&e.data.dir==='お迎え');
+    body=`<div class="field"><label>便</label>${opts('dir',['お迎え','お送り'],x.dir||(back?'お送り':'お迎え'))}</div>
+      <div class="field"><label>方法</label>${opts('how',['送迎車','ご家族送迎','自力（徒歩など）'],x.how||'送迎車')}</div>
+      <div class="field"><label>乗降</label>${opts('walk',['独歩','見守り','手引き','車いす'],x.walk||'')}</div>
+      <div class="field"><label>メモ（ご家族への申し送りなど）</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('pick','memo')}</div>`;
+  }
   if(kind==='nap'){
     body=`<div class="field"><label>時間</label><input class="timein" type="time" data-f="from" value="${esc(x.from||'13:00')}"> 〜 <input class="timein" type="time" data-f="to" value="${esc(x.to||'14:00')}"></div>
       <div class="field"><label>メモ</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('nap','memo')}</div>`;
@@ -700,7 +727,7 @@ function openSheet(uid,kind,entry){
     <div class="acts">${entry?'<button class="btn danger" id="del">削除</button>':''}<button class="btn ghost" id="cancel">やめる</button><button class="btn primary" id="ok">保存</button></div>`;
   ov.classList.add('show');
   sh.querySelectorAll('.opts').forEach(g=>g.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
-    const was=b.classList.contains('on'); g.querySelectorAll('.opt').forEach(o=>o.classList.remove('on')); if(!(was&&g.dataset.name==='amt')) b.classList.add('on');
+    const was=b.classList.contains('on'); g.querySelectorAll('.opt').forEach(o=>o.classList.remove('on')); if(!(was&&(g.dataset.name==='amt'||g.dataset.name==='walk'))) b.classList.add('on');
   }));
   sh.querySelectorAll('.phr').forEach(p=>p.querySelectorAll('button').forEach(b=>b.onclick=()=>{
     const ta=sh.querySelector(`[data-f="${p.dataset.target}"]`); appendText(ta,b.textContent); ta.focus();
