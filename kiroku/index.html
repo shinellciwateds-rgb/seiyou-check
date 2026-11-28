@@ -216,7 +216,40 @@ textarea:focus,.timein:focus{outline:none;border-color:var(--accent)}
 .book .sub{font-size:13px;font-weight:800;color:#9a7b4f;margin:14px 0 4px}
 .book .by{text-align:right;font-size:13px;color:#8a7a62;margin-top:10px}
 .rbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+/* 印刷プレビュー */
+#pv{position:fixed;inset:0;z-index:90;background:#8a949e;overflow:auto;display:none;-webkit-overflow-scrolling:touch}
+#pv.show{display:block}
+.pvbar{position:sticky;top:0;z-index:2;display:flex;gap:10px;align-items:center;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));background:var(--card);box-shadow:var(--shadow);flex-wrap:wrap}
+.pvbar b{font-size:17px}
+.pvbar .hint{flex:1;min-width:200px}
+.pvpages{padding:20px 12px 60px;display:flex;flex-direction:column;align-items:center;gap:20px}
+.pg{background:#fff;color:#222;width:210mm;max-width:100%;min-height:297mm;padding:14mm 13mm;box-shadow:0 4px 18px rgba(0,0,0,.25);font-size:13px;line-height:1.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.pg .ph1{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #333;padding-bottom:6px;margin-bottom:10px;gap:10px}
+.pg .ph1 h1{margin:0;font-size:20px;letter-spacing:.2em}
+.pg .ph1 .fac{font-size:12px;text-align:right}
+.pg .who2{display:flex;gap:18px;align-items:baseline;margin-bottom:10px;flex-wrap:wrap}
+.pg .who2 b{font-size:18px}
+.pg table.rt{width:100%;border-collapse:collapse}
+.pg table.rt th,.pg table.rt td{border:1px solid #888;padding:5px 7px;text-align:left;vertical-align:top}
+.pg table.rt th{background:#eef0f2;font-weight:700;font-size:12px}
+.pg table.rt td.c{white-space:nowrap;width:1%}
+.pg .bad{color:#c0392b}
+.pg .stamp{display:flex;justify-content:flex-end;margin-top:14px}
+.pg .stamp table{border-collapse:collapse}
+.pg .stamp td{border:1px solid #888;width:64px;text-align:center;font-size:11px;padding:2px}
+.pg .stamp tr:last-child td{height:52px}
+.pg .book{box-shadow:none;border:1px solid #d8ccb4;border-radius:10px;font-size:15px}
+.pg .book .bph{grid-template-columns:repeat(2,1fr)}
+.pg .book .bph img{max-height:85mm;object-fit:cover}
+@page{size:A4;margin:0}
 @media print{
+  body.printing>*:not(#pv){display:none!important}
+  body.printing{padding:0;background:#fff}
+  body.printing #pv{position:static;display:block;background:#fff;overflow:visible}
+  body.printing .pvbar{display:none!important}
+  body.printing .pvpages{padding:0;gap:0;display:block}
+  body.printing .pg{box-shadow:none;width:auto;min-height:0;break-after:page;page-break-after:always}
+  body.printing .pg:last-child{break-after:auto;page-break-after:auto}
   header,.noprint,.note-banner{display:none!important}
   body{background:#fff;color:#000;font-size:12px;padding:0}
   .panel{box-shadow:none;border:1px solid #999;break-inside:avoid;margin-bottom:10px}
@@ -246,6 +279,7 @@ textarea:focus,.timein:focus{outline:none;border-color:var(--accent)}
 
 <div class="overlay" id="ov"><div class="sheet" id="sheet"></div></div>
 <div class="overlay" id="ov2"><div class="sheet" id="sheet2"></div></div>
+<div id="pv"><div class="pvbar"><b id="pvTitle">印刷プレビュー</b><span class="hint" id="pvHint"></span><button class="btn ghost" id="pvClose">閉じる</button><button class="btn primary" id="pvGo">🖨 印刷・PDF保存</button></div><div class="pvpages" id="pvPages"></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -471,6 +505,7 @@ function viewPerson(uid){
   const tc=es.filter(e=>e.kind==='toilet').length;
   let h=`<div class="phead noprint"><button class="back" data-act="back">‹ 一覧へ</button>
     <h2>${esc(u.n)} 様</h2><span class="lv">${esc(u.lv||'')}</span><div class="sp" style="flex:1"></div>
+    <button class="btn ghost" data-act="prRec" data-id="${uid}">🖨 印刷・PDF</button>
     <button class="btn ghost" data-act="open" data-id="${prevId||''}" ${prevId?'':'disabled'}>‹ 前の人</button>
     <button class="btn ghost" data-act="open" data-id="${nextId||''}" ${nextId?'':'disabled'}>次の人 ›</button></div>`;
   if(u.warn) h+=`<div class="note-banner" style="background:var(--red-bg)">⚠ <div><b style="color:var(--red)">注意事項：</b>${esc(u.warn)}</div></div>`;
@@ -538,12 +573,12 @@ function viewBulk(){
 /* 経過記録（介護経過表のような一覧） */
 function viewReport(){
   const ids=todayIds();
-  let h=banner()+`<div class="bar noprint"><h2>${cur.getMonth()+1}月${cur.getDate()}日の経過記録</h2><div class="sp" style="flex:1"></div>${window.top===window?'<button class="btn" data-act="print">🖨 印刷</button>':''}</div>`;
+  let h=banner()+`<div class="bar noprint"><h2>${cur.getMonth()+1}月${cur.getDate()}日の経過記録</h2><div class="sp" style="flex:1"></div><button class="btn primary" data-act="prRecAll">🖨 全員分を印刷・PDF</button></div>`;
   let any=false;
   ids.forEach(id=>{
     const es=entriesOf(id); if(!es.length) return; any=true;
     const u=userById(id);
-    h+=`<div class="panel" style="margin-bottom:12px"><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px"><b style="font-size:19px">${esc(u.n)} 様</b><span class="hint">${esc(u.lv||'')}</span></div>
+    h+=`<div class="panel" style="margin-bottom:12px"><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px"><b style="font-size:19px">${esc(u.n)} 様</b><span class="hint">${esc(u.lv||'')}</span><span style="flex:1"></span><button class="btn ghost noprint" data-act="prRec" data-id="${id}" style="min-height:38px;padding:4px 12px">🖨 この方だけ</button></div>
     <table class="tl"><thead><tr><th>時刻</th><th>項目</th><th>内容</th><th>記録者</th></tr></thead><tbody>`+
     es.map(e=>`<tr><td class="tm">${e.time}</td><td class="kd"><span class="tag k-${e.kind}">${KINDS[e.kind].short}</span></td><td>${describe(e)}</td><td class="by">${esc(e.by||'')}</td></tr>`).join('')+'</tbody></table></div>';
   });
@@ -564,6 +599,10 @@ function bindMain(){
       else if(a==='pickAtt'){ openAttPicker(); }
       else if(a==='bk'){ bulkKind=el.dataset.kind; render(); }
       else if(a==='print'){ window.print(); }
+      else if(a==='prRecAll'){ printRecords(todayIds()); }
+      else if(a==='prRec'){ printRecords([el.dataset.id]); }
+      else if(a==='prBookAll'){ printBooks(todayIds().filter(id=>{const r=getR(id);return r&&r.done})); }
+      else if(a==='prBook'){ printBooks([el.dataset.id]); }
       else if(a==='toRenraku'){ tab='renraku'; render(); scrollTo(0,0); }
       else if(a==='ropen'){ personId=el.dataset.id; render(); scrollTo(0,0); }
       else if(a==='rback'){ personId=null; render(); }
@@ -783,7 +822,7 @@ function draftFor(uid){
 function viewRenrakuList(){
   const ids=todayIds();
   const n=ids.filter(id=>{const r=getR(id);return r&&r.done}).length;
-  let h=banner()+`<div class="bar"><h2>連絡帳</h2><span class="count">完成 ${n} / ${ids.length}名</span></div>`;
+  let h=banner()+`<div class="bar"><h2>連絡帳</h2><span class="count">完成 ${n} / ${ids.length}名</span><div class="sp" style="flex:1"></div><button class="btn primary" data-act="prBookAll" ${n?'':'disabled'}>🖨 完成分をまとめて印刷・PDF</button></div>`;
   if(!ids.length) return h+'<div class="empty">この日の利用者がいません。</div>';
   h+='<div class="rgrid">'+ids.map(id=>{const u=userById(id); const r=getR(id); const ph=r&&r.photos&&r.photos[0];
     return `<button class="rcard" data-act="ropen" data-id="${id}"><div class="th">${ph?`<img src="${ph}" alt="">`:'📒'}</div><div><div class="nm">${esc(u.n)}</div>${renrakuStatus(id)} ${r&&r.photos&&r.photos.length?`<span class="hint">📷${r.photos.length}</span>`:''}</div></button>`}).join('')+'</div>';
@@ -802,7 +841,7 @@ function viewRenrakuEdit(uid){
     <div class="field"><label>ご家族からの連絡（連絡帳に書いてあった内容など）</label><textarea id="rfam" style="min-height:70px">${esc(r.family||'')}</textarea></div>
     <div class="acts" style="position:static"><button class="btn ${r.done?'ghost':'primary'}" id="rdone">${r.done?'作成中に戻す':'✓ 完成にする'}</button></div>
   </div>
-  <div><div class="hint noprint" style="margin-bottom:6px">ご家族に渡す連絡帳のイメージ　${window.top===window?'<button class="btn" data-act="print" style="min-height:36px;padding:4px 12px">🖨 印刷</button>':''}</div><div id="rprev"></div></div></div>`;
+  <div><div class="hint noprint" style="margin-bottom:6px">ご家族に渡す連絡帳のイメージ　<button class="btn" data-act="prBook" data-id="${uid}" style="min-height:38px;padding:4px 12px">🖨 この連絡帳を印刷・PDF</button></div><div id="rprev"></div></div></div>`;
 }
 function bookHTML(uid){
   const u=userById(uid); const r=getR(uid)||{}; const x=daySummary(uid);
@@ -842,6 +881,32 @@ function shrink(file){ return new Promise((res,rej)=>{ const url=URL.createObjec
   img.onload=()=>{ const m=900, sc=Math.min(1,m/Math.max(img.width,img.height)); const c=document.createElement('canvas'); c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc);
     c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg',0.72)); };
   img.onerror=()=>{URL.revokeObjectURL(url);rej()}; img.src=url; }); }
+
+/* ===== 印刷・PDF ===== */
+function dateJP(){return `${cur.getFullYear()}年${cur.getMonth()+1}月${cur.getDate()}日（${W[cur.getDay()]}）`}
+function recordPage(uid){
+  const u=userById(uid); const es=entriesOf(uid);
+  return `<div class="pg"><div class="ph1"><h1>介護経過記録</h1><div class="fac">デイサービスシャイン<br>${dateJP()}</div></div>
+  <div class="who2"><b>${esc(u.n)} 様</b><span>${esc(u.lv||'')}</span>${u.warn?`<span>注意：${esc(u.warn)}</span>`:''}</div>
+  <table class="rt"><thead><tr><th>時刻</th><th>項目</th><th>内容</th><th>記録者</th></tr></thead><tbody>`+
+  (es.length?es.map(e=>`<tr><td class="c">${e.time}</td><td class="c">${KINDS[e.kind].n}</td><td>${describe(e)}</td><td class="c">${esc(e.by||'')}</td></tr>`).join(''):'<tr><td colspan="4">記録なし</td></tr>')+
+  `</tbody></table><div class="stamp"><table><tr><td>施設長</td><td>相談員</td><td>看護</td></tr><tr><td></td><td></td><td></td></tr></table></div></div>`;
+}
+function openPreview(title,html,count){
+  if(!count){toast('印刷する記録がありません');return;}
+  document.getElementById('pvTitle').textContent=title;
+  document.getElementById('pvHint').textContent=`A4・${count}枚。iPadでは印刷画面の「共有」→「ファイルに保存」でPDFになります。パソコンでは送信先を「PDFに保存」に。`;
+  document.getElementById('pvPages').innerHTML=html;
+  document.getElementById('pv').classList.add('show'); document.getElementById('pv').scrollTop=0;
+}
+function printRecords(ids){ ids=ids.filter(id=>entriesOf(id).length); openPreview(`経過記録　${dateJP()}`,ids.map(recordPage).join(''),ids.length); }
+function printBooks(ids){ openPreview(`連絡帳　${dateJP()}`,ids.map(id=>`<div class="pg">${bookHTML(id)}</div>`).join(''),ids.length); }
+document.getElementById('pvClose').onclick=()=>document.getElementById('pv').classList.remove('show');
+document.getElementById('pvGo').onclick=()=>{
+  if(window.top!==window){ toast('この確認用ページでは印刷できません。iPadのアプリ版で印刷できます'); return; }
+  document.body.classList.add('printing'); setTimeout(()=>{ window.print(); },50);
+};
+window.addEventListener('afterprint',()=>document.body.classList.remove('printing'));
 
 /* ヘッダー */
 document.getElementById('prev').onclick=()=>{cur.setDate(cur.getDate()-1);render()};
