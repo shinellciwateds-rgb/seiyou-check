@@ -128,7 +128,7 @@ function uploadPdf_(b){
 // 連絡帳：管理アプリと同じ置き場所・名前・共有設定にする
 function uploadRenraku_(b){
   const ymd = String(b.date || today_()).replace(/-/g, '');            // 20261128
-  const name = norm_(b.name);                                        // 空白なし（例：上田キヨ）
+  const name = String(b.name || '').replace(/[\s　]/g, '');          // 空白だけ取る（（障）や髙はそのまま。管理アプリの利用者リストと同じ書き方）
   const folder = subfolder_(DriveApp.getFolderById(RENRAKU_FOLDER_ID), ymd);
   let fname = '連絡帳' + ymd + '_' + name + '様.pdf', n = 1;
   while (folder.getFilesByName(fname).hasNext()) fname = '連絡帳' + ymd + '_' + name + '様_' + (n++) + '.pdf'; // 同名は連番（rename_tool と同じ）

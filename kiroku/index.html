@@ -987,7 +987,7 @@ document.getElementById('pvDrive').onclick=async()=>{
     await pdfLibs(); const els=[...document.querySelectorAll('#pvPages .pg')]; const d=dayStr(); let n=0;
     if(PV.kind==='連絡帳'){
       for(let i=0;i<els.length;i++){ const u=userById(PV.ids[i]); b.textContent=`保存中 ${i+1}/${els.length}`;
-        const r=await api('POST',{action:'uploadPdf',kind:'連絡帳',date:d,name:u.n.replace(/^（障）/,''),filename:`連絡帳${d.replace(/-/g,'')}_${u.n.replace(/[\s　]/g,'')}様.pdf`,data:await pagesToPdf([els[i]])}); if(r.ok) n++; }
+        const r=await api('POST',{action:'uploadPdf',kind:'連絡帳',date:d,name:u.n,filename:`連絡帳${d.replace(/-/g,'')}_${u.n.replace(/[\s　]/g,'')}様.pdf`,data:await pagesToPdf([els[i]])}); if(r.ok) n++; }
     }else{
       const name=PV.ids.length===1?userById(PV.ids[0]).n.replace(/[\s　]/g,''):'全員';
       b.textContent='保存中…';
