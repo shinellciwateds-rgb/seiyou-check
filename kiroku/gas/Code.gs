@@ -11,9 +11,9 @@
  */
 
 const ROOT_FOLDER_NAME = 'デイサービスシャイン_介護記録';
-// シャイン管理アプリが見ている連絡帳フォルダ（rename_tool.py と同じ）。
+// シャイン管理アプリが見ている連絡帳フォルダ（自動アップロードツール最新版と同じ）。
 // ここに「日付(YYYYMMDD)のフォルダ / 連絡帳YYYYMMDD_名前様.pdf」で入れると、今のDrive同期・LINE通知にそのまま乗る
-const RENRAKU_FOLDER_ID = '10PMUjdRbxhR73WUuhw-PRrYbCTBrZpYf';
+const RENRAKU_FOLDER_ID = '1iWqFJBU4u_JghiSIzyerSZPCQ0owZFGZ';
 const PHOTO_MINUTES = 10;   // 名前を送ってから何分間の写真をその人の分にするか
 
 function prop_(k){ return PropertiesService.getScriptProperties().getProperty(k) || ''; }
