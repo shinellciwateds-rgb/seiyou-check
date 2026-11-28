@@ -757,9 +757,9 @@ function openSettings(){
     <div class="field"><label>利用者名簿（1行に1人。「名前,介護度,注意事項」の形で貼り付けできます）</label><textarea id="usr" style="min-height:180px">${esc(S.users.map(u=>[u.n,u.lv||'',u.warn||''].join(',').replace(/,+$/,'')).join('\n'))}</textarea>
     <div class="hint">名簿を変えても、すでに入っている記録は名前が同じ人に残ります。</div></div>
     <div class="field"><label>マイテンプレート（よく使う文を1行に1つ。テンプレートの「マイテンプレート」に出ます）</label><textarea id="mytpl">${esc((S.myTpl||[]).join('\n'))}</textarea></div>
-    <div class="field"><label>LINE・Googleドライブ連携（設定した人だけが触る所です）</label>
-      <input class="tsearch" id="syncUrl" placeholder="連携先のURL（https://script.google.com/...）" value="${esc((S.sync||{}).url||'')}">
-      <input class="tsearch" id="syncKey" placeholder="合言葉" value="${esc((S.sync||{}).key||'')}" style="margin-top:8px">
+    <div class="field"><label>シャイン管理アプリとの連携（設定した人だけが触る所です）</label>
+      <input class="tsearch" id="syncUrl" placeholder="シャイン管理アプリと同じURL（https://script.google.com/...）" value="${esc((S.sync||{}).url||'')}">
+      <input class="tsearch" id="syncKey" placeholder="合言葉（管理アプリと同じ ADMIN_KEY）" value="${esc((S.sync||{}).key||'')}" style="margin-top:8px">
       <div class="rbtns"><button class="btn ghost" id="syncTest" type="button">接続テスト</button><span class="hint" id="syncMsg"></span></div>
       <div class="hint">保存すると、名簿の名前がLINE連携にも送られます（LINEで名前を送ったときに照合するため）。</div></div>
     <div class="field"><label>保存の仕組みについて</label><div class="hint" style="font-size:15px">今は試作のため、このiPadの中だけに保存しています。本番ではGoogleスプレッドシートに保存して、どのiPad・パソコンからでも同じ記録を見られるようにする予定です。</div></div>
