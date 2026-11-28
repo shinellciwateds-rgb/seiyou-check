@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eef2f6">
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="介護記録">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<title>介護記録（試作）</title>
+<style>
+:root{
+  --bg:#eef2f6; --card:#ffffff; --ink:#28323c; --sub:#6f7c88; --line:#dbe3ea;
+  --accent:#3b7fb0; --accent-bg:#e1eef8; --accent-ink:#ffffff;
+  --red:#d55a4a; --red-bg:#fde7e3; --amber:#c98a1d; --amber-bg:#fcf0d6; --ok:#3f9a74; --ok-bg:#e0f2e9;
+  --gray-bg:#eef1f4; --shadow:0 2px 12px rgba(30,55,80,.08); --r:16px;
+  --c-vital:#d5694f; --c-meal:#d9962b; --c-water:#3b8fc4; --c-toilet:#8a6cc1; --c-bath:#2f9fa0; --c-nap:#6d7fb8; --c-train:#4f9a5c; --c-note:#7d8791;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1a1f25; --card:#242b33; --ink:#eaf0f5; --sub:#a0adb9; --line:#36404a;
+    --accent:#5a9bd0; --accent-bg:#22384a; --red-bg:#4a2a25; --amber-bg:#4a3a1c; --ok-bg:#20402f; --gray-bg:#2c343d; --shadow:none; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1a1f25; --card:#242b33; --ink:#eaf0f5; --sub:#a0adb9; --line:#36404a;
+  --accent:#5a9bd0; --accent-bg:#22384a; --red-bg:#4a2a25; --amber-bg:#4a3a1c; --ok-bg:#20402f; --gray-bg:#2c343d; --shadow:none; color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",system-ui,sans-serif;font-size:17px;line-height:1.5;padding-bottom:40px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);padding:10px 0 0;padding-top:max(10px,env(safe-area-inset-top));border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:19px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.brand .dot{width:32px;height:32px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:#fff;font-size:16px}
+.brand small{font-weight:600;font-size:12px;color:var(--amber);background:var(--amber-bg);padding:2px 8px;border-radius:999px}
+.sp{flex:1}
+.day{display:flex;align-items:center;gap:2px;background:var(--card);border-radius:999px;padding:4px;box-shadow:var(--shadow)}
+.day button{border:0;background:transparent;width:38px;height:38px;border-radius:50%;font-size:18px}
+.day button:active{background:var(--line)}
+.day b{min-width:128px;text-align:center;font-size:16px;white-space:nowrap}
+.day b.notToday{color:var(--amber)}
+.pill{border:0;background:var(--card);height:46px;padding:0 16px;border-radius:999px;box-shadow:var(--shadow);font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.pill.warn{background:var(--amber-bg);color:var(--amber)}
+.gear{border:0;background:var(--card);width:46px;height:46px;border-radius:50%;box-shadow:var(--shadow);font-size:19px}
+nav.tabs{display:flex;gap:4px;margin-top:10px;overflow-x:auto}
+nav.tabs button{border:0;background:transparent;padding:10px 18px 12px;font-weight:700;color:var(--sub);border-bottom:3px solid transparent;white-space:nowrap;font-size:16px}
+nav.tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+main{padding-top:16px}
+.bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.bar h2{margin:0;font-size:18px}
+.bar .count{color:var(--sub);font-size:15px}
+.btn{border:0;border-radius:12px;padding:10px 16px;font-weight:700;background:var(--card);box-shadow:var(--shadow);min-height:46px}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:var(--gray-bg);box-shadow:none}
+.btn.danger{background:var(--red-bg);color:var(--red);box-shadow:none}
+.btn:disabled{opacity:.4}
+.note-banner{background:var(--amber-bg);color:var(--ink);border-radius:12px;padding:10px 14px;font-size:14px;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
+.note-banner b{color:var(--amber)}
+
+/* user cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.ucard{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;border:2px solid transparent;text-align:left;width:100%;display:flex;flex-direction:column;gap:8px}
+.ucard:active{border-color:var(--accent)}
+.ucard .nm{font-size:20px;font-weight:800;display:flex;align-items:baseline;gap:8px}
+.ucard .nm small{font-size:13px;color:var(--sub);font-weight:600}
+.ucard .alert{font-size:13px;color:var(--red);background:var(--red-bg);border-radius:8px;padding:2px 8px;align-self:flex-start}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:13px;padding:3px 9px;border-radius:999px;background:var(--gray-bg);color:var(--sub);white-space:nowrap}
+.chip.done{color:#fff}
+.chip.k-vital.done{background:var(--c-vital)} .chip.k-meal.done{background:var(--c-meal)} .chip.k-water.done{background:var(--c-water)}
+.chip.k-toilet.done{background:var(--c-toilet)} .chip.k-bath.done{background:var(--c-bath)} .chip.k-note.done{background:var(--c-note)}
+.chip.k-nap.done{background:var(--c-nap)} .chip.k-train.done{background:var(--c-train)}
+.ucard .last{font-size:13px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{background:var(--card);border-radius:var(--r);padding:40px 20px;text-align:center;color:var(--sub)}
+
+/* person view */
+.person{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+@media (max-width:820px){.person{grid-template-columns:1fr}}
+.panel{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:14px}
+.phead{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.phead .back{border:0;background:var(--card);box-shadow:var(--shadow);height:46px;padding:0 16px;border-radius:999px;font-weight:700}
+.phead h2{margin:0;font-size:24px}
+.phead .lv{color:var(--sub);font-size:15px}
+.kinds{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:820px){.kinds{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:520px){.kinds{grid-template-columns:repeat(2,1fr)}}
+.kbtn{border:0;border-radius:14px;padding:14px 6px;min-height:84px;color:#fff;font-weight:800;font-size:17px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.kbtn span{font-size:26px;line-height:1}
+.kbtn small{font-weight:600;font-size:12px;opacity:.9}
+.kbtn:active{filter:brightness(.92)}
+.k-vital.kbtn{background:var(--c-vital)} .k-meal.kbtn{background:var(--c-meal)} .k-water.kbtn{background:var(--c-water)} .k-toilet.kbtn{background:var(--c-toilet)}
+.k-bath.kbtn{background:var(--c-bath)} .k-nap.kbtn{background:var(--c-nap)} .k-train.kbtn{background:var(--c-train)} .k-note.kbtn{background:var(--c-note)}
+.sumrow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+@media (max-width:620px){.sumrow{grid-template-columns:repeat(2,1fr)}}
+.sum{background:var(--gray-bg);border-radius:12px;padding:8px 10px}
+.sum .l{font-size:12px;color:var(--sub)}
+.sum .v{font-weight:800;font-size:17px}
+.sum .v.bad{color:var(--red)}
+.tl{width:100%;border-collapse:collapse}
+.tl td,.tl th{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+.tl th{font-size:13px;color:var(--sub);font-weight:600}
+.tl tr.row{cursor:pointer}
+.tl tr.row:active{background:var(--gray-bg)}
+.tl .tm{width:64px;font-weight:700;font-variant-numeric:tabular-nums}
+.tl .kd{width:96px}
+.tl .by{width:90px;color:var(--sub);font-size:14px}
+.tag{display:inline-block;color:#fff;font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px;white-space:nowrap}
+.tag.k-vital{background:var(--c-vital)} .tag.k-meal{background:var(--c-meal)} .tag.k-water{background:var(--c-water)} .tag.k-toilet{background:var(--c-toilet)}
+.tag.k-bath{background:var(--c-bath)} .tag.k-nap{background:var(--c-nap)} .tag.k-train{background:var(--c-train)} .tag.k-note{background:var(--c-note)}
+.bad{color:var(--red);font-weight:800}
+
+/* bulk */
+.seg{display:inline-flex;background:var(--card);border-radius:12px;padding:4px;box-shadow:var(--shadow);gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:8px 16px;border-radius:9px;font-weight:700;min-height:42px}
+.seg button.on{background:var(--accent);color:#fff}
+.btable{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.btable th,.btable td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+.btable th{font-size:13px;color:var(--sub);background:var(--gray-bg);font-weight:600;white-space:nowrap}
+.btable td.nm{font-weight:800;white-space:nowrap;font-size:17px}
+.btable input.num{width:84px;height:46px;border:2px solid var(--line);border-radius:10px;text-align:center;font-size:18px;font-weight:700;background:var(--bg)}
+.btable input.num:focus{outline:none;border-color:var(--accent)}
+.btable input.num.bad{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+.btable .saved{color:var(--ok);font-size:13px;font-weight:700;white-space:nowrap}
+.minis{display:flex;gap:4px;flex-wrap:wrap}
+.mini{border:2px solid var(--line);background:var(--bg);border-radius:10px;min-width:46px;height:44px;padding:0 8px;font-weight:700}
+.mini.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r)}
+
+/* sheet */
+.overlay{position:fixed;inset:0;background:rgba(10,20,30,.38);z-index:50;display:none;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+@media (min-width:700px){.overlay{align-items:center}}
+.sheet{background:var(--card);width:100%;max-width:720px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 18px max(18px,env(safe-area-inset-bottom))}
+@media (min-width:700px){.sheet{border-radius:22px}}
+.sheet h3{margin:0 0 4px;font-size:21px;display:flex;align-items:center;gap:10px}
+.sheet .who{color:var(--sub);font-size:15px;margin-bottom:14px}
+.field{margin:14px 0}
+.field>label{display:block;font-size:14px;color:var(--sub);font-weight:700;margin-bottom:6px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{border:2px solid var(--line);background:var(--bg);border-radius:12px;min-height:52px;min-width:64px;padding:0 14px;font-weight:700;font-size:17px}
+.opt.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.vgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:600px){.vgrid{grid-template-columns:repeat(4,1fr)}}
+.vbox{background:var(--bg);border-radius:12px;padding:8px 10px;border:2px solid var(--line)}
+.vbox.bad{border-color:var(--red);background:var(--red-bg)}
+.vbox label{font-size:13px;color:var(--sub);font-weight:700}
+.vbox input{width:100%;border:0;background:transparent;font-size:28px;font-weight:800;padding:0;outline:none}
+.vbox .u{font-size:13px;color:var(--sub)}
+.bp{display:flex;align-items:center;gap:4px}
+.bp input{width:50%}
+textarea{width:100%;min-height:110px;border:2px solid var(--line);border-radius:12px;padding:10px;background:var(--bg);font-size:17px;resize:vertical}
+textarea:focus,.timein:focus{outline:none;border-color:var(--accent)}
+.timein{height:50px;border:2px solid var(--line);border-radius:12px;padding:0 12px;background:var(--bg);font-size:20px;font-weight:700}
+.phr{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.phr button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:15px}
+.sheet .acts{display:flex;gap:10px;margin-top:18px;position:sticky;bottom:-18px;background:var(--card);padding:10px 0 4px}
+.sheet .acts .btn{flex:1;min-height:56px;font-size:18px}
+.sheet .acts .btn.danger{flex:0 0 auto}
+.list-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:56vh;overflow:auto;padding:2px}
+.list-pick .opt{width:100%;text-align:left}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:#28323c;color:#fff;padding:12px 22px;border-radius:999px;font-weight:700;opacity:0;transition:.25s;z-index:80;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.hint{font-size:13px;color:var(--sub)}
+.sec{margin:22px 0 8px;font-weight:800}
+@media print{
+  header,.noprint,.note-banner{display:none!important}
+  body{background:#fff;color:#000;font-size:12px;padding:0}
+  .panel{box-shadow:none;border:1px solid #999;break-inside:avoid;margin-bottom:10px}
+  .tag{color:#000!important;background:none!important;border:1px solid #000;padding:0 4px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand"><div class="dot">記</div>介護記録 <small>試作版</small></div>
+      <div class="sp"></div>
+      <div class="day"><button id="prev" aria-label="前の日">‹</button><b id="dayLabel"></b><button id="next" aria-label="次の日">›</button></div>
+      <button class="pill" id="staffBtn"></button>
+      <button class="gear" id="gearBtn" aria-label="設定">⚙</button>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="list" class="on">利用者一覧</button>
+      <button data-tab="bulk">一括入力</button>
+      <button data-tab="report">経過記録</button>
+    </nav>
+  </div>
+</header>
+<main class="wrap" id="main"></main>
+
+<div class="overlay" id="ov"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== 基本データ ===== */
+const KINDS = {
+  vital:{n:'バイタル',i:'🌡',short:'バイタル'},
+  meal:{n:'食事',i:'🍚',short:'食事'},
+  water:{n:'水分',i:'🥤',short:'水分'},
+  toilet:{n:'排泄',i:'🚻',short:'排泄'},
+  bath:{n:'入浴',i:'🛁',short:'入浴'},
+  nap:{n:'午睡',i:'💤',short:'午睡'},
+  train:{n:'機能訓練',i:'💪',short:'訓練'},
+  note:{n:'様子',i:'📝',short:'様子'}
+};
+const KORDER = ['vital','meal','water','toilet','bath','nap','train','note'];
+const PHRASES = {
+  note:['笑顔で過ごされる','他利用者と会話を楽しまれる','レクに参加される','穏やかに過ごされる','落ち着かない様子あり','眠そうにされている','ご家族へ連絡済み','特変なし'],
+  vital:['再検あり','ご本人より体調良好との事','看護師へ報告済み'],
+  meal:['ムセなし','ムセあり','声掛けで摂取','一部介助','全介助','刻み食'],
+  toilet:['自立','見守り','一部介助','全介助','失禁あり','パッド交換'],
+  bath:['皮膚状態異常なし','発赤あり','軟膏塗布','爪切り実施','バイタル不良のため中止','本人拒否のため中止'],
+  nap:['よく眠られる','横になるが眠らず'],
+  train:['意欲的に取り組まれる','疲労の訴えあり','声掛けで実施']
+};
+const DEMO_USERS = ['青木 ハナ','石川 正男','上田 キヨ','遠藤 勝','大野 トミ子','加藤 実','木村 ヨシ','工藤 清','佐々木 ミツ','鈴木 弘','高田 フミ','千葉 一郎','中村 サダ','西田 健二','橋本 タケ','藤原 茂','松本 ユキ','村上 進','山口 チヨ','渡辺 博'];
+const DEMO_LV = ['要介護1','要介護2','要支援2','要介護3','要介護1','要介護2','要介護4','要介護1','要介護2','要支援1','要介護1','要介護3','要介護2','要介護1','要介護5','要介護2','要介護1','要介護3','要介護2','要介護1'];
+const DEMO_STAFF = ['施設長','相談員','看護 A','看護 B','介護 A','介護 B','介護 C'];
+
+const KEY='kaigo-kiroku-v1';
+let S = load();
+function load(){
+  try{const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.users) return s;}catch(e){}
+  return demoState();
+}
+function save(){ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('⚠ 保存できませんでした')} }
+function demoState(){
+  const users = DEMO_USERS.map((n,i)=>({id:'u'+(i+1),n,lv:DEMO_LV[i],warn:i===3?'降圧剤服用中・血圧注意':i===6?'嚥下注意（とろみ）':i===14?'皮膚剥離しやすい':''}));
+  const st = {users,staff:DEMO_STAFF.slice(),me:'',att:{},entries:[],demo:true};
+  // 今日のサンプル記録
+  const d=ymd(new Date());
+  const ids = attDefault(d,users);
+  st.att[d]=ids;
+  const rnd = mulberry(7);
+  const add=(uid,time,kind,data,by)=>st.entries.push({id:uid+kind+time+Math.random().toString(36).slice(2,6),d,uid,time,kind,data,by,ts:Date.now()});
+  ids.slice(0,10).forEach((uid,k)=>{
+    const t=(36+rnd()*1.1).toFixed(1), sys=Math.round(112+rnd()*45), dia=Math.round(64+rnd()*22), p=Math.round(62+rnd()*24), o=Math.round(94+rnd()*5);
+    add(uid,'09:'+String(10+k*3).padStart(2,'0'),'vital',{t,sys:String(k===2?168:sys),dia:String(dia),p:String(p),o:String(o)},k%2?'看護 A':'看護 B');
+    add(uid,'10:'+String(5+k*2).padStart(2,'0'),'water',{ml:'150',what:'お茶'},'介護 A');
+    if(k<6) add(uid,'10:'+String(20+k*4).padStart(2,'0'),'bath',{how:k===4?'機械浴':'一般浴',hair:'洗髪あり',memo:''},'介護 B');
+    if(k<8) add(uid,'12:'+String(10+k).padStart(2,'0'),'meal',{main:['10','8','10','5'][k%4],side:['10','8','5','10','8'][k%5],memo:k===6?'ムセなし':''},'介護 C');
+    if(k%3===0) add(uid,'11:'+String(15+k).padStart(2,'0'),'toilet',{type:'尿',where:'トイレ',amt:'中',memo:'自立'},'介護 A');
+  });
+  add(ids[0],'13:30','note',{text:'昼食後、他利用者と会話を楽しまれる。笑顔多く見られる。'},'相談員');
+  add(ids[3],'13:00','nap',{from:'13:00',to:'13:40',memo:'よく眠られる'},'介護 B');
+  return st;
+}
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function attDefault(d,users){ // デモ用：日付ごとに15人くらい
+  const r=mulberry(parseInt(d.replace(/-/g,''),10)); return users.filter(()=>r()<0.75).map(u=>u.id);
+}
+
+/* ===== 日付・ユーティリティ ===== */
+function ymd(dt){return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')}
+function nowHM(){const n=new Date();return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')}
+let cur = new Date(); let tab='list'; let personId=null; let bulkKind='vital';
+const W='日月火水木金土';
+function dayStr(){return ymd(cur)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function userById(id){return S.users.find(u=>u.id===id)}
+function todayIds(){const d=dayStr(); if(!S.att[d]){ S.att[d]= S.demo?attDefault(d,S.users):[]; save(); } return S.att[d].filter(id=>userById(id));}
+function entriesOf(uid,d=dayStr()){return S.entries.filter(e=>e.d===d&&e.uid===uid).sort((a,b)=>a.time.localeCompare(b.time))}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1800)}
+
+/* 異常値の目安（試作。施設長・看護師と要相談） */
+const LIM={t:[35.5,37.5],sys:[90,160],dia:[0,100],p:[50,100],o:[93,101]};
+function isBad(k,v){ if(v===''||v==null||isNaN(+v)) return false; const [lo,hi]=LIM[k]; return +v<lo||+v>=hi; }
+
+function describe(e){
+  const x=e.data||{};
+  switch(e.kind){
+    case 'vital':{
+      const p=[];
+      if(x.t) p.push(`体温 <span class="${isBad('t',x.t)?'bad':''}">${esc(x.t)}℃</span>`);
+      if(x.sys||x.dia) p.push(`血圧 <span class="${isBad('sys',x.sys)||isBad('dia',x.dia)?'bad':''}">${esc(x.sys)}/${esc(x.dia)}</span>`);
+      if(x.p) p.push(`脈拍 <span class="${isBad('p',x.p)?'bad':''}">${esc(x.p)}</span>`);
+      if(x.o) p.push(`SpO2 <span class="${isBad('o',x.o)?'bad':''}">${esc(x.o)}%</span>`);
+      return p.join('　')+(x.memo?'<br>'+esc(x.memo):'');
+    }
+    case 'meal': return `主食 ${esc(x.main||'-')}割　副食 ${esc(x.side||'-')}割`+(x.memo?'　'+esc(x.memo):'');
+    case 'water': return `${esc(x.what||'水分')} ${esc(x.ml)}ml`+(x.memo?'　'+esc(x.memo):'');
+    case 'toilet': return [x.type,x.where,x.amt&&('量 '+x.amt)].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
+    case 'bath': return [x.how,x.how!=='中止'&&x.hair].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
+    case 'nap': return `${esc(x.from||'')}〜${esc(x.to||'')}`+(x.memo?'　'+esc(x.memo):'');
+    case 'train': return [x.what].filter(Boolean).map(esc).join('')+(x.memo?'　'+esc(x.memo):'');
+    case 'note': return esc(x.text||'').replace(/\n/g,'<br>');
+  }
+  return '';
+}
+function plain(e){const d=document.createElement('div');d.innerHTML=describe(e);return d.textContent}
+
+/* ===== 画面 ===== */
+function render(){
+  const isToday = dayStr()===ymd(new Date());
+  const lab=document.getElementById('dayLabel');
+  lab.textContent=`${cur.getMonth()+1}月${cur.getDate()}日（${W[cur.getDay()]}）`+(isToday?'':' ');
+  lab.className=isToday?'':'notToday';
+  const sb=document.getElementById('staffBtn');
+  sb.innerHTML = S.me?`👤 ${esc(S.me)}`:'👤 記録者を選ぶ'; sb.className='pill'+(S.me?'':' warn');
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  const m=document.getElementById('main');
+  if(tab==='list' && personId) m.innerHTML=viewPerson(personId);
+  else if(tab==='list') m.innerHTML=viewList();
+  else if(tab==='bulk') m.innerHTML=viewBulk();
+  else m.innerHTML=viewReport();
+  bindMain();
+}
+function banner(){
+  return `<div class="note-banner noprint">ℹ️ <div><b>試作版です。</b>記録はこのiPadの中だけに保存されます（他のiPadとは共有されません）。名前はサンプルです。</div></div>`;
+}
+function statusChips(uid){
+  const es=entriesOf(uid); const has=k=>es.some(e=>e.kind===k);
+  const ml=es.filter(e=>e.kind==='water').reduce((a,e)=>a+(+e.data.ml||0),0);
+  const tc=es.filter(e=>e.kind==='toilet').length;
+  const meal=es.find(e=>e.kind==='meal');
+  const bath=es.find(e=>e.kind==='bath');
+  const c=(k,label,on)=>`<span class="chip k-${k} ${on?'done':''}">${label}</span>`;
+  return c('vital','バイタル',has('vital'))+c('meal',meal?`食事 ${meal.data.main||'-'}/${meal.data.side||'-'}`:'食事',!!meal)+c('water',ml?`水分 ${ml}ml`:'水分',ml>0)+c('toilet',tc?`排泄 ${tc}回`:'排泄',tc>0)+c('bath',bath?`入浴 ${bath.data.how}`:'入浴',!!bath)+c('note','様子',has('note'));
+}
+function vitalAlert(uid){
+  const v=entriesOf(uid).filter(e=>e.kind==='vital').pop(); if(!v) return '';
+  const x=v.data; const bads=[];
+  if(isBad('t',x.t)) bads.push('体温'); if(isBad('sys',x.sys)||isBad('dia',x.dia)) bads.push('血圧'); if(isBad('p',x.p)) bads.push('脈拍'); if(isBad('o',x.o)) bads.push('SpO2');
+  return bads.length?`<span class="alert">⚠ ${bads.join('・')}が目安外</span>`:'';
+}
+function viewList(){
+  const ids=todayIds();
+  let h=banner()+`<div class="bar"><h2>本日の利用者</h2><span class="count">${ids.length}名</span><div class="sp"></div><button class="btn" data-act="pickAtt">＋ 利用者を選ぶ</button></div>`;
+  if(!ids.length) return h+`<div class="empty">この日の利用者がいません。<br>右上の「＋ 利用者を選ぶ」から追加してください。</div>`;
+  h+='<div class="grid">';
+  ids.forEach(id=>{
+    const u=userById(id); const es=entriesOf(id); const last=es[es.length-1];
+    h+=`<button class="ucard" data-act="open" data-id="${id}">
+      <div class="nm">${esc(u.n)}<small>${esc(u.lv||'')}</small></div>
+      ${vitalAlert(id)}
+      ${u.warn?`<div class="hint">⚠ ${esc(u.warn)}</div>`:''}
+      <div class="chips">${statusChips(id)}</div>
+      <div class="last">${last?`最終 ${last.time} ${KINDS[last.kind].n}：${esc(plain(last))}`:'まだ記録がありません'}</div>
+    </button>`;
+  });
+  return h+'</div>';
+}
+function viewPerson(uid){
+  const u=userById(uid); const es=entriesOf(uid);
+  const ids=todayIds(); const ix=ids.indexOf(uid);
+  const prevId=ix>0?ids[ix-1]:null, nextId=ix>=0&&ix<ids.length-1?ids[ix+1]:null;
+  const v=es.filter(e=>e.kind==='vital').pop();
+  const ml=es.filter(e=>e.kind==='water').reduce((a,e)=>a+(+e.data.ml||0),0);
+  const meal=es.find(e=>e.kind==='meal');
+  const tc=es.filter(e=>e.kind==='toilet').length;
+  let h=`<div class="phead noprint"><button class="back" data-act="back">‹ 一覧へ</button>
+    <h2>${esc(u.n)} 様</h2><span class="lv">${esc(u.lv||'')}</span><div class="sp" style="flex:1"></div>
+    <button class="btn ghost" data-act="open" data-id="${prevId||''}" ${prevId?'':'disabled'}>‹ 前の人</button>
+    <button class="btn ghost" data-act="open" data-id="${nextId||''}" ${nextId?'':'disabled'}>次の人 ›</button></div>`;
+  if(u.warn) h+=`<div class="note-banner" style="background:var(--red-bg)">⚠ <div><b style="color:var(--red)">注意事項：</b>${esc(u.warn)}</div></div>`;
+  h+=`<div class="person"><div class="panel noprint"><div class="hint" style="margin-bottom:8px">記録する項目をタップ</div><div class="kinds">`+
+    KORDER.map(k=>`<button class="kbtn k-${k}" data-act="new" data-kind="${k}"><span>${KINDS[k].i}</span>${KINDS[k].n}</button>`).join('')+
+    `</div></div><div class="panel">
+    <div class="sumrow">
+      <div class="sum"><div class="l">バイタル（最新）</div><div class="v">${v?describeShortVital(v.data):'—'}</div></div>
+      <div class="sum"><div class="l">食事 主食/副食</div><div class="v">${meal?`${meal.data.main||'-'} / ${meal.data.side||'-'} 割`:'—'}</div></div>
+      <div class="sum"><div class="l">水分 合計</div><div class="v">${ml?ml+' ml':'—'}</div></div>
+      <div class="sum"><div class="l">排泄</div><div class="v">${tc?tc+' 回':'—'}</div></div>
+    </div>
+    <table class="tl"><thead><tr><th>時刻</th><th>項目</th><th>内容</th><th>記録者</th></tr></thead><tbody>`;
+  if(!es.length) h+=`<tr><td colspan="4" class="hint" style="padding:30px;text-align:center">まだ記録がありません。左の項目ボタンから記録します。</td></tr>`;
+  es.forEach(e=>{ h+=`<tr class="row" data-act="edit" data-eid="${e.id}"><td class="tm">${e.time}</td><td class="kd"><span class="tag k-${e.kind}">${KINDS[e.kind].short}</span></td><td>${describe(e)}</td><td class="by">${esc(e.by||'')}</td></tr>`; });
+  h+=`</tbody></table><div class="hint" style="margin-top:8px">行をタップすると修正・削除できます。</div></div></div>`;
+  return h;
+}
+function describeShortVital(x){
+  const s=(k,v,u='')=>v?`<span class="${isBad(k,v)?'bad':''}">${esc(v)}${u}</span>`:'-';
+  return `${s('t',x.t,'℃')} ${x.sys?`<span class="${isBad('sys',x.sys)||isBad('dia',x.dia)?'bad':''}">${esc(x.sys)}/${esc(x.dia)}</span>`:''}`;
+}
+
+/* 一括入力 */
+function viewBulk(){
+  const ids=todayIds();
+  const segs=[['vital','バイタル'],['meal','食事'],['water','水分'],['bath','入浴']];
+  let h=banner()+`<div class="bar"><div class="seg">${segs.map(([k,n])=>`<button data-act="bk" data-kind="${k}" class="${bulkKind===k?'on':''}">${KINDS[k].i} ${n}</button>`).join('')}</div>
+    <div class="sp" style="flex:1"></div><span class="count">${ids.length}名</span></div>`;
+  if(!ids.length) return h+`<div class="empty">この日の利用者がいません。「利用者一覧」で選んでください。</div>`;
+  h+='<div class="scrollx"><table class="btable"><thead><tr><th>利用者</th>';
+  if(bulkKind==='vital') h+='<th>体温 ℃</th><th>血圧 上</th><th>血圧 下</th><th>脈拍</th><th>SpO2 %</th><th></th>';
+  if(bulkKind==='meal') h+='<th>主食（割）</th><th>副食（割）</th><th></th>';
+  if(bulkKind==='water') h+='<th>水分を追加（お茶）</th><th>本日合計</th>';
+  if(bulkKind==='bath') h+='<th>入浴</th><th></th>';
+  h+='</tr></thead><tbody>';
+  ids.forEach(id=>{
+    const u=userById(id); const es=entriesOf(id);
+    const first=es.find(e=>e.kind===bulkKind);
+    const x=first?first.data:{};
+    h+=`<tr data-uid="${id}"><td class="nm">${esc(u.n)}</td>`;
+    if(bulkKind==='vital'){
+      const inp=(k,ph)=>`<td><input class="num ${isBad(k,x[k])?'bad':''}" inputmode="decimal" data-bv="${k}" value="${esc(x[k]||'')}" placeholder="${ph}"></td>`;
+      h+=inp('t','36.5')+inp('sys','120')+inp('dia','70')+inp('p','70')+inp('o','97')+`<td class="saved">${first?'✓ '+first.time:''}</td>`;
+    }
+    if(bulkKind==='meal'){
+      const sel=(f)=>`<td><div class="minis">${['10','8','5','3','0'].map(v=>`<button class="mini ${x[f]===v?'on':''}" data-act="bm" data-f="${f}" data-v="${v}">${v}</button>`).join('')}</div></td>`;
+      h+=sel('main')+sel('side')+`<td class="saved">${first?'✓':''}</td>`;
+    }
+    if(bulkKind==='water'){
+      const ml=es.filter(e=>e.kind==='water').reduce((a,e)=>a+(+e.data.ml||0),0);
+      h+=`<td><div class="minis">${['100','150','200','250'].map(v=>`<button class="mini" data-act="bw" data-v="${v}">＋${v}</button>`).join('')}</div></td><td style="font-weight:800;font-size:18px">${ml} ml</td>`;
+    }
+    if(bulkKind==='bath'){
+      h+=`<td><div class="minis">${['一般浴','機械浴','シャワー浴','清拭','中止','なし'].map(v=>`<button class="mini ${(first?x.how:'')===v?'on':''}" data-act="bb" data-v="${v}">${v}</button>`).join('')}</div></td><td class="saved">${first?'✓ '+first.time:''}</td>`;
+    }
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  if(bulkKind==='vital') h+=`<div class="hint" style="margin-top:8px">入力すると自動で保存されます。赤枠は目安外（体温37.5以上、血圧上160以上／90未満、脈拍100以上／50未満、SpO2 93未満）。目安は試作用の仮の値です。</div>`;
+  if(bulkKind==='water') h+=`<div class="hint" style="margin-top:8px">ボタンを押すたびに、その時刻で水分の記録が1件追加されます。間違えたら利用者の画面から削除できます。</div>`;
+  return h;
+}
+
+/* 経過記録（介護経過表のような一覧） */
+function viewReport(){
+  const ids=todayIds();
+  let h=banner()+`<div class="bar noprint"><h2>${cur.getMonth()+1}月${cur.getDate()}日の経過記録</h2><div class="sp" style="flex:1"></div>${window.top===window?'<button class="btn" data-act="print">🖨 印刷</button>':''}</div>`;
+  let any=false;
+  ids.forEach(id=>{
+    const es=entriesOf(id); if(!es.length) return; any=true;
+    const u=userById(id);
+    h+=`<div class="panel" style="margin-bottom:12px"><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px"><b style="font-size:19px">${esc(u.n)} 様</b><span class="hint">${esc(u.lv||'')}</span></div>
+    <table class="tl"><thead><tr><th>時刻</th><th>項目</th><th>内容</th><th>記録者</th></tr></thead><tbody>`+
+    es.map(e=>`<tr><td class="tm">${e.time}</td><td class="kd"><span class="tag k-${e.kind}">${KINDS[e.kind].short}</span></td><td>${describe(e)}</td><td class="by">${esc(e.by||'')}</td></tr>`).join('')+'</tbody></table></div>';
+  });
+  if(!any) h+='<div class="empty">この日の記録はまだありません。</div>';
+  return h;
+}
+
+/* ===== 操作 ===== */
+function bindMain(){
+  document.querySelectorAll('#main [data-act]').forEach(el=>{
+    const a=el.dataset.act;
+    if(el.tagName==='INPUT') return;
+    el.onclick=()=>{
+      if(a==='open'){ if(!el.dataset.id) return; personId=el.dataset.id; render(); scrollTo(0,0); }
+      else if(a==='back'){ personId=null; render(); }
+      else if(a==='new'){ openSheet(personId,el.dataset.kind,null); }
+      else if(a==='edit'){ const e=S.entries.find(x=>x.id===el.dataset.eid); if(e) openSheet(e.uid,e.kind,e); }
+      else if(a==='pickAtt'){ openAttPicker(); }
+      else if(a==='bk'){ bulkKind=el.dataset.kind; render(); }
+      else if(a==='print'){ window.print(); }
+      else if(a==='bm'||a==='bb'||a==='bw'){ bulkTap(el,a); }
+    };
+  });
+  document.querySelectorAll('#main input[data-bv]').forEach(inp=>{
+    inp.onchange=()=>bulkVital(inp);
+    inp.oninput=()=>inp.classList.toggle('bad',isBad(inp.dataset.bv,inp.value));
+  });
+}
+function needStaff(cb){ if(S.me) return cb(); openStaffPicker(cb); }
+function upsertFirst(uid,kind,patch){
+  const d=dayStr(); let e=S.entries.find(x=>x.d===d&&x.uid===uid&&x.kind===kind);
+  if(!e){ e={id:uid+kind+Date.now().toString(36)+Math.random().toString(36).slice(2,5),d,uid,time:nowHM(),kind,data:{},by:S.me,ts:Date.now()}; S.entries.push(e); }
+  Object.assign(e.data,patch); e.by=S.me; e.ts=Date.now(); save(); return e;
+}
+function bulkVital(inp){
+  needStaff(()=>{
+    const uid=inp.closest('tr').dataset.uid;
+    const e=upsertFirst(uid,'vital',{[inp.dataset.bv]:inp.value.trim()});
+    inp.closest('tr').querySelector('.saved').textContent='✓ '+e.time;
+  });
+}
+function bulkTap(el,a){
+  needStaff(()=>{
+    const uid=el.closest('tr').dataset.uid;
+    if(a==='bm'){ upsertFirst(uid,'meal',{[el.dataset.f]:el.dataset.v}); }
+    if(a==='bb'){
+      const d=dayStr();
+      if(el.dataset.v==='なし'){ S.entries=S.entries.filter(x=>!(x.d===d&&x.uid===uid&&x.kind==='bath')); save(); }
+      else upsertFirst(uid,'bath',{how:el.dataset.v,hair:'洗髪あり'});
+    }
+    if(a==='bw'){ S.entries.push({id:uid+'w'+Date.now().toString(36),d:dayStr(),uid,time:nowHM(),kind:'water',data:{ml:el.dataset.v,what:'お茶'},by:S.me,ts:Date.now()}); save(); toast(`${userById(uid).n} 様 水分 ${el.dataset.v}ml`); }
+    render();
+  });
+}
+
+/* ===== 入力シート ===== */
+const ov=document.getElementById('ov'), sh=document.getElementById('sheet');
+function closeSheet(){ov.classList.remove('show')}
+ov.onclick=e=>{if(e.target===ov) closeSheet()};
+function opts(name,list,val){return `<div class="opts" data-name="${name}">`+list.map(v=>`<button type="button" class="opt ${val===v?'on':''}" data-v="${esc(v)}">${esc(v)}</button>`).join('')+'</div>'}
+function phr(kind,target){const p=PHRASES[kind]||[]; return p.length?`<div class="phr" data-target="${target}">`+p.map(t=>`<button type="button">${esc(t)}</button>`).join('')+'</div>':''}
+
+function openSheet(uid,kind,entry){
+  needStaff(()=>{
+  const u=userById(uid); const x=entry?{...entry.data}:{};
+  let body='';
+  if(kind==='vital'){
+    const vb=(k,l,u2,ph)=>`<div class="vbox ${isBad(k,x[k])?'bad':''}"><label>${l}</label><input inputmode="decimal" data-f="${k}" value="${esc(x[k]||'')}" placeholder="${ph}"><div class="u">${u2}</div></div>`;
+    body=`<div class="vgrid">${vb('t','体温','℃','36.5')}
+      <div class="vbox ${isBad('sys',x.sys)||isBad('dia',x.dia)?'bad':''}" id="bpbox"><label>血圧</label><div class="bp"><input inputmode="numeric" data-f="sys" value="${esc(x.sys||'')}" placeholder="120">/<input inputmode="numeric" data-f="dia" value="${esc(x.dia||'')}" placeholder="70"></div><div class="u">mmHg</div></div>
+      ${vb('p','脈拍','回/分','70')}${vb('o','SpO2','%','97')}</div>
+      <div class="field"><label>メモ</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('vital','memo')}</div>`;
+  }
+  if(kind==='meal'){
+    const w=['10','9','8','7','6','5','4','3','2','1','0'];
+    body=`<div class="field"><label>主食（割）</label>${opts('main',w,x.main)}</div>
+      <div class="field"><label>副食（割）</label>${opts('side',w,x.side)}</div>
+      <div class="field"><label>メモ</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('meal','memo')}</div>`;
+  }
+  if(kind==='water'){
+    body=`<div class="field"><label>量（ml）</label>${opts('ml',['50','100','150','200','250','300'],x.ml||'150')}</div>
+      <div class="field"><label>種類</label>${opts('what',['お茶','水','牛乳','コーヒー','ジュース','とろみ茶','その他'],x.what||'お茶')}</div>`;
+  }
+  if(kind==='toilet'){
+    body=`<div class="field"><label>種類</label>${opts('type',['尿','便','尿・便','なし'],x.type||'尿')}</div>
+      <div class="field"><label>場所</label>${opts('where',['トイレ','Pトイレ','パッド','オムツ'],x.where||'トイレ')}</div>
+      <div class="field"><label>量</label>${opts('amt',['少','中','多'],x.amt||'')}</div>
+      <div class="field"><label>メモ</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('toilet','memo')}</div>`;
+  }
+  if(kind==='bath'){
+    body=`<div class="field"><label>入浴方法</label>${opts('how',['一般浴','機械浴','シャワー浴','清拭','中止'],x.how||'一般浴')}</div>
+      <div class="field"><label>洗髪</label>${opts('hair',['洗髪あり','洗髪なし'],x.hair||'洗髪あり')}</div>
+      <div class="field"><label>メモ（皮膚の状態など）</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('bath','memo')}</div>`;
+  }
+  if(kind==='nap'){
+    body=`<div class="field"><label>時間</label><input class="timein" type="time" data-f="from" value="${esc(x.from||'13:00')}"> 〜 <input class="timein" type="time" data-f="to" value="${esc(x.to||'14:00')}"></div>
+      <div class="field"><label>メモ</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('nap','memo')}</div>`;
+  }
+  if(kind==='train'){
+    body=`<div class="field"><label>内容</label>${opts('what',['個別機能訓練','集団体操','歩行訓練','マシン','口腔体操'],x.what||'個別機能訓練')}</div>
+      <div class="field"><label>メモ</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('train','memo')}</div>`;
+  }
+  if(kind==='note'){
+    body=`<div class="field"><label>様子・特記事項</label><textarea data-f="text" style="min-height:150px">${esc(x.text||'')}</textarea>${phr('note','text')}<div class="hint" style="margin-top:6px">定型文をタップすると追加されます。iPadのマイク（音声入力）も使えます。</div></div>`;
+  }
+  sh.innerHTML=`<h3><span class="tag k-${kind}" style="font-size:16px">${KINDS[kind].i} ${KINDS[kind].n}</span>${entry?'の修正':''}</h3>
+    <div class="who">${esc(u.n)} 様　／　記録者：${esc(entry?entry.by:S.me)}</div>
+    <div class="field"><label>時刻</label><input class="timein" type="time" id="etime" value="${entry?entry.time:nowHM()}"></div>
+    ${body}
+    <div class="acts">${entry?'<button class="btn danger" id="del">削除</button>':''}<button class="btn ghost" id="cancel">やめる</button><button class="btn primary" id="ok">保存</button></div>`;
+  ov.classList.add('show');
+  sh.querySelectorAll('.opts').forEach(g=>g.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+    const was=b.classList.contains('on'); g.querySelectorAll('.opt').forEach(o=>o.classList.remove('on')); if(!(was&&g.dataset.name==='amt')) b.classList.add('on');
+  }));
+  sh.querySelectorAll('.phr').forEach(p=>p.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const ta=sh.querySelector(`[data-f="${p.dataset.target}"]`); ta.value=(ta.value?ta.value.replace(/\s*$/,'')+(ta.value.match(/[。\n]$/)?'':'。'):'')+b.textContent; ta.focus();
+  }));
+  if(kind==='vital'){
+    sh.querySelectorAll('input[data-f]').forEach(i=>i.oninput=()=>{
+      const k=i.dataset.f; if(k==='sys'||k==='dia'){const s=sh.querySelector('[data-f=sys]').value,d=sh.querySelector('[data-f=dia]').value; document.getElementById('bpbox').classList.toggle('bad',isBad('sys',s)||isBad('dia',d));}
+      else i.closest('.vbox').classList.toggle('bad',isBad(k,i.value));
+    });
+    setTimeout(()=>{const f=sh.querySelector('[data-f=t]'); if(f&&!entry) f.focus();},150);
+  }
+  document.getElementById('cancel').onclick=closeSheet;
+  if(entry) document.getElementById('del').onclick=ev=>{ const b=ev.currentTarget; if(!b.dataset.sure){b.dataset.sure=1;b.textContent='もう一度押すと削除';return;} S.entries=S.entries.filter(e=>e.id!==entry.id); save(); closeSheet(); render(); toast('削除しました'); };
+  document.getElementById('ok').onclick=()=>{
+    const data={};
+    sh.querySelectorAll('.opts').forEach(g=>{const on=g.querySelector('.opt.on'); data[g.dataset.name]=on?on.dataset.v:'';});
+    sh.querySelectorAll('[data-f]').forEach(i=>data[i.dataset.f]=i.value.trim());
+    if(kind==='note'&&!data.text){toast('内容を入力してください');return;}
+    if(kind==='vital'&&!data.t&&!data.sys&&!data.p&&!data.o){toast('数値を入力してください');return;}
+    if(kind==='meal'&&!data.main&&!data.side){toast('割合を選んでください');return;}
+    const time=document.getElementById('etime').value||nowHM();
+    if(entry){ Object.assign(entry,{time,data,ts:Date.now()}); }
+    else S.entries.push({id:uid+kind+Date.now().toString(36),d:dayStr(),uid,time,kind,data,by:S.me,ts:Date.now()});
+    save(); closeSheet(); render(); toast('保存しました');
+  };
+  });
+}
+
+/* 記録者・利用者の選択 */
+function openStaffPicker(cb){
+  sh.innerHTML=`<h3>👤 記録者を選んでください</h3><div class="who">記録に名前が残ります。次からは選び直すまでこのままです。</div>
+    <div class="list-pick">${S.staff.map(n=>`<button class="opt ${S.me===n?'on':''}" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div>
+    <div class="acts"><button class="btn ghost" id="cancel">閉じる</button></div>`;
+  ov.classList.add('show');
+  sh.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{S.me=b.dataset.n;save();closeSheet();render();toast(`記録者：${S.me}`); if(cb) setTimeout(cb,50);});
+  document.getElementById('cancel').onclick=closeSheet;
+}
+function openAttPicker(){
+  const d=dayStr(); const set=new Set(todayIds());
+  sh.innerHTML=`<h3>本日の利用者を選ぶ</h3><div class="who">${cur.getMonth()+1}月${cur.getDate()}日に来られる方をタップ（本番では予定表から自動で入る想定）</div>
+    <div class="list-pick">${S.users.map(u=>`<button class="opt ${set.has(u.id)?'on':''}" data-id="${u.id}">${esc(u.n)}</button>`).join('')}</div>
+    <div class="acts"><button class="btn primary" id="ok">決定</button></div>`;
+  ov.classList.add('show');
+  sh.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>b.classList.toggle('on'));
+  document.getElementById('ok').onclick=()=>{
+    const on=[...sh.querySelectorAll('[data-id].on')].map(b=>b.dataset.id);
+    S.att[d]=S.users.map(u=>u.id).filter(id=>on.includes(id)); save(); closeSheet(); render();
+  };
+}
+function openSettings(){
+  sh.innerHTML=`<h3>⚙ 設定（試作）</h3>
+    <div class="field"><label>記録者の名前（1行に1人）</label><textarea id="stf">${esc(S.staff.join('\n'))}</textarea></div>
+    <div class="field"><label>利用者名簿（1行に1人。「名前,介護度,注意事項」の形で貼り付けできます）</label><textarea id="usr" style="min-height:180px">${esc(S.users.map(u=>[u.n,u.lv||'',u.warn||''].join(',').replace(/,+$/,'')).join('\n'))}</textarea>
+    <div class="hint">名簿を変えても、すでに入っている記録は名前が同じ人に残ります。</div></div>
+    <div class="field"><label>保存の仕組みについて</label><div class="hint" style="font-size:15px">今は試作のため、このiPadの中だけに保存しています。本番ではGoogleスプレッドシートに保存して、どのiPad・パソコンからでも同じ記録を見られるようにする予定です。</div></div>
+    <div class="acts"><button class="btn danger" id="reset">サンプルに戻す</button><button class="btn ghost" id="cancel">やめる</button><button class="btn primary" id="ok">保存</button></div>`;
+  ov.classList.add('show');
+  document.getElementById('cancel').onclick=closeSheet;
+  document.getElementById('reset').onclick=ev=>{ const b=ev.currentTarget; if(!b.dataset.sure){b.dataset.sure=1;b.textContent='もう一度押すと戻します';return;} S=demoState(); save(); closeSheet(); personId=null; render(); toast('サンプルに戻しました'); };
+  document.getElementById('ok').onclick=()=>{
+    S.staff=document.getElementById('stf').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    const lines=document.getElementById('usr').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    const old=S.users; let n=old.length;
+    S.users=lines.map(l=>{const [nm,lv,...w]=l.split(/[,\t、]/).map(s=>s.trim()); const ex=old.find(u=>u.n===nm); return {id:ex?ex.id:'u'+(++n)+Date.now().toString(36),n:nm,lv:lv||'',warn:w.join('、')};});
+    if(!S.staff.includes(S.me)) S.me='';
+    save(); closeSheet(); personId=null; render(); toast('保存しました');
+  };
+}
+
+/* ヘッダー */
+document.getElementById('prev').onclick=()=>{cur.setDate(cur.getDate()-1);render()};
+document.getElementById('next').onclick=()=>{cur.setDate(cur.getDate()+1);render()};
+document.getElementById('dayLabel').onclick=()=>{cur=new Date();render()};
+document.getElementById('staffBtn').onclick=()=>openStaffPicker();
+document.getElementById('gearBtn').onclick=openSettings;
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;personId=null;render();scrollTo(0,0)});
+render();
+</script>
+</body>
+</html>
