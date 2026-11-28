@@ -279,7 +279,7 @@ textarea:focus,.timein:focus{outline:none;border-color:var(--accent)}
 
 <div class="overlay" id="ov"><div class="sheet" id="sheet"></div></div>
 <div class="overlay" id="ov2"><div class="sheet" id="sheet2"></div></div>
-<div id="pv"><div class="pvbar"><b id="pvTitle">印刷プレビュー</b><span class="hint" id="pvHint"></span><button class="btn ghost" id="pvClose">閉じる</button><button class="btn primary" id="pvGo">🖨 印刷・PDF保存</button></div><div class="pvpages" id="pvPages"></div></div>
+<div id="pv"><div class="pvbar"><b id="pvTitle">印刷プレビュー</b><span class="hint" id="pvHint"></span><button class="btn ghost" id="pvClose">閉じる</button><button class="btn" id="pvDrive">☁ ドライブに保存</button><button class="btn primary" id="pvGo">🖨 印刷・PDF保存</button></div><div class="pvpages" id="pvPages"></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -452,6 +452,7 @@ function render(){
   sb.innerHTML = S.me?`👤 ${esc(S.me)}`:'👤 記録者を選ぶ'; sb.className='pill'+(S.me?'':' warn');
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   const m=document.getElementById('main');
+  if(tab==='renraku'&&!personId) lineImport(false);
   if(tab==='renraku'){ m.innerHTML= personId?viewRenrakuEdit(personId):viewRenrakuList(); bindMain(); if(personId) bindRenraku(personId); return; }
   if(tab==='list' && personId) m.innerHTML=viewPerson(personId);
   else if(tab==='list') m.innerHTML=viewList();
@@ -599,6 +600,7 @@ function bindMain(){
       else if(a==='pickAtt'){ openAttPicker(); }
       else if(a==='bk'){ bulkKind=el.dataset.kind; render(); }
       else if(a==='print'){ window.print(); }
+      else if(a==='lineImport'){ lineImport(true); }
       else if(a==='prRecAll'){ printRecords(todayIds()); }
       else if(a==='prRec'){ printRecords([el.dataset.id]); }
       else if(a==='prBookAll'){ printBooks(todayIds().filter(id=>{const r=getR(id);return r&&r.done})); }
@@ -755,12 +757,18 @@ function openSettings(){
     <div class="field"><label>利用者名簿（1行に1人。「名前,介護度,注意事項」の形で貼り付けできます）</label><textarea id="usr" style="min-height:180px">${esc(S.users.map(u=>[u.n,u.lv||'',u.warn||''].join(',').replace(/,+$/,'')).join('\n'))}</textarea>
     <div class="hint">名簿を変えても、すでに入っている記録は名前が同じ人に残ります。</div></div>
     <div class="field"><label>マイテンプレート（よく使う文を1行に1つ。テンプレートの「マイテンプレート」に出ます）</label><textarea id="mytpl">${esc((S.myTpl||[]).join('\n'))}</textarea></div>
+    <div class="field"><label>LINE・Googleドライブ連携（設定した人だけが触る所です）</label>
+      <input class="tsearch" id="syncUrl" placeholder="連携先のURL（https://script.google.com/...）" value="${esc((S.sync||{}).url||'')}">
+      <input class="tsearch" id="syncKey" placeholder="合言葉" value="${esc((S.sync||{}).key||'')}" style="margin-top:8px">
+      <div class="rbtns"><button class="btn ghost" id="syncTest" type="button">接続テスト</button><span class="hint" id="syncMsg"></span></div>
+      <div class="hint">保存すると、名簿の名前がLINE連携にも送られます（LINEで名前を送ったときに照合するため）。</div></div>
     <div class="field"><label>保存の仕組みについて</label><div class="hint" style="font-size:15px">今は試作のため、このiPadの中だけに保存しています。本番ではGoogleスプレッドシートに保存して、どのiPad・パソコンからでも同じ記録を見られるようにする予定です。</div></div>
     <div class="acts"><button class="btn danger" id="reset">サンプルに戻す</button><button class="btn ghost" id="cancel">やめる</button><button class="btn primary" id="ok">保存</button></div>`;
   ov.classList.add('show');
   document.getElementById('cancel').onclick=closeSheet;
   document.getElementById('reset').onclick=ev=>{ const b=ev.currentTarget; if(!b.dataset.sure){b.dataset.sure=1;b.textContent='もう一度押すと戻します';return;} S=demoState(); save(); closeSheet(); personId=null; render(); toast('サンプルに戻しました'); };
   document.getElementById('ok').onclick=()=>{
+    S.sync={url:document.getElementById('syncUrl').value.trim(),key:document.getElementById('syncKey').value.trim()};
     S.myTpl=document.getElementById('mytpl').value.split('\n').map(s=>s.trim()).filter(Boolean);
     S.staff=document.getElementById('stf').value.split('\n').map(s=>s.trim()).filter(Boolean);
     const lines=document.getElementById('usr').value.split('\n').map(s=>s.trim()).filter(Boolean);
@@ -768,6 +776,15 @@ function openSettings(){
     S.users=lines.map(l=>{const [nm,lv,...w]=l.split(/[,\t、]/).map(s=>s.trim()); const ex=old.find(u=>u.n===nm); return {id:ex?ex.id:'u'+(++n)+Date.now().toString(36),n:nm,lv:lv||'',warn:w.join('、')};});
     if(!S.staff.includes(S.me)) S.me='';
     save(); closeSheet(); personId=null; render(); toast('保存しました');
+    if(synced()) api('POST',{action:'roster',names:S.users.map(u=>u.n)}).catch(()=>toast('⚠ 名簿をLINE連携に送れませんでした'));
+  };
+  document.getElementById('syncTest').onclick=async()=>{
+    const m=document.getElementById('syncMsg'); const keep=S.sync;
+    S.sync={url:document.getElementById('syncUrl').value.trim(),key:document.getElementById('syncKey').value.trim()};
+    m.textContent='確認中…';
+    try{ const r=await api('GET',{action:'ping'}); m.textContent=r.ok?`✓ つながりました（LINEグループ：${r.group}）`:'✕ '+(r.error||'つながりません'); }
+    catch(e){ m.textContent='✕ つながりません。URLを確認してください'; }
+    S.sync=keep;
   };
 }
 
@@ -822,7 +839,7 @@ function draftFor(uid){
 function viewRenrakuList(){
   const ids=todayIds();
   const n=ids.filter(id=>{const r=getR(id);return r&&r.done}).length;
-  let h=banner()+`<div class="bar"><h2>連絡帳</h2><span class="count">完成 ${n} / ${ids.length}名</span><div class="sp" style="flex:1"></div><button class="btn primary" data-act="prBookAll" ${n?'':'disabled'}>🖨 完成分をまとめて印刷・PDF</button></div>`;
+  let h=banner()+`<div class="bar"><h2>連絡帳</h2><span class="count">完成 ${n} / ${ids.length}名</span><div class="sp" style="flex:1"></div><button class="btn" data-act="lineImport">📥 LINEの写真を取り込む</button><button class="btn primary" data-act="prBookAll" ${n?'':'disabled'}>🖨 完成分をまとめて印刷・PDF</button></div>`;
   if(!ids.length) return h+'<div class="empty">この日の利用者がいません。</div>';
   h+='<div class="rgrid">'+ids.map(id=>{const u=userById(id); const r=getR(id); const ph=r&&r.photos&&r.photos[0];
     return `<button class="rcard" data-act="ropen" data-id="${id}"><div class="th">${ph?`<img src="${ph}" alt="">`:'📒'}</div><div><div class="nm">${esc(u.n)}</div>${renrakuStatus(id)} ${r&&r.photos&&r.photos.length?`<span class="hint">📷${r.photos.length}</span>`:''}</div></button>`}).join('')+'</div>';
@@ -899,14 +916,89 @@ function openPreview(title,html,count){
   document.getElementById('pvPages').innerHTML=html;
   document.getElementById('pv').classList.add('show'); document.getElementById('pv').scrollTop=0;
 }
-function printRecords(ids){ ids=ids.filter(id=>entriesOf(id).length); openPreview(`経過記録　${dateJP()}`,ids.map(recordPage).join(''),ids.length); }
-function printBooks(ids){ openPreview(`連絡帳　${dateJP()}`,ids.map(id=>`<div class="pg">${bookHTML(id)}</div>`).join(''),ids.length); }
+let PV={};
+function printRecords(ids){ ids=ids.filter(id=>entriesOf(id).length); PV={kind:'経過記録',ids}; openPreview(`経過記録　${dateJP()}`,ids.map(recordPage).join(''),ids.length); }
+function printBooks(ids){ PV={kind:'連絡帳',ids}; openPreview(`連絡帳　${dateJP()}`,ids.map(id=>`<div class="pg">${bookHTML(id)}</div>`).join(''),ids.length); }
 document.getElementById('pvClose').onclick=()=>document.getElementById('pv').classList.remove('show');
 document.getElementById('pvGo').onclick=()=>{
   if(window.top!==window){ toast('この確認用ページでは印刷できません。iPadのアプリ版で印刷できます'); return; }
   document.body.classList.add('printing'); setTimeout(()=>{ window.print(); },50);
 };
 window.addEventListener('afterprint',()=>document.body.classList.remove('printing'));
+
+/* ===== LINE・Googleドライブ連携 ===== */
+function synced(){ return !!(S.sync&&S.sync.url&&S.sync.key); }
+async function api(method,params){
+  const u=S.sync.url;
+  if(method==='GET'){ const q=new URLSearchParams({...params,key:S.sync.key}); const r=await fetch(u+(u.includes('?')?'&':'?')+q); return r.json(); }
+  const r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...params,key:S.sync.key})}); return r.json();
+}
+function syncInfo(what){
+  sh.innerHTML=`<h3>${what==='line'?'📥 LINEの写真を連絡帳に':'☁ PDFをGoogleドライブに'}</h3>
+  <div class="who">この機能は、LINE・Googleドライブとの連携を設定すると使えます（試作では未設定です）。</div>
+  ${what==='line'?`<div class="field"><label>使い方（設定後）</label><div style="line-height:2">① いつものグループLINEに、利用者さんの名前だけを送る（例：上田キヨ）<br>② 続けて写真を送る（何枚でも。10分以内）<br>③ LINEに「上田キヨ 様の連絡帳に写真を入れました」と返事が来る<br>④ このアプリの連絡帳を開くと、写真が自動で入っています</div></div>`
+  :`<div class="field"><label>使い方（設定後）</label><div style="line-height:2">① 印刷プレビューで「☁ ドライブに保存」を押す<br>② Googleドライブの「デイサービスシャイン_介護記録」フォルダに、月ごとに分けてPDFが保存されます<br>　連絡帳：連絡帳PDF／2026-11／連絡帳_2026-11-28_上田キヨ.pdf<br>　経過記録：経過記録PDF／2026-11／経過記録_2026-11-28_全員.pdf</div></div>`}
+  <div class="acts"><button class="btn primary" id="cancel">閉じる</button></div>`;
+  ov.classList.add('show'); document.getElementById('cancel').onclick=closeSheet;
+}
+function shrinkSrc(src){ return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>{ const m=900, sc=Math.min(1,m/Math.max(img.width,img.height)); const c=document.createElement('canvas'); c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc); c.getContext('2d').drawImage(img,0,0,c.width,c.height); res(c.toDataURL('image/jpeg',0.72)); }; img.onerror=rej; img.src=src; }); }
+let lineBusy=false, lineLast=0;
+async function lineImport(manual){
+  if(!synced()){ if(manual) syncInfo('line'); return; }
+  if(lineBusy) return; if(!manual && Date.now()-lineLast<60000) return;
+  lineBusy=true; lineLast=Date.now(); if(manual) toast('LINEの写真を確認しています…');
+  try{
+    const r=await api('GET',{action:'photos',date:dayStr()}); if(!r.ok) throw new Error(r.error);
+    S.lineDone=S.lineDone||{}; S.renraku=S.renraku||{};
+    const nm=x=>String(x||'').replace(/[\s　]/g,'').replace(/髙/g,'高').replace(/^（障）/,'');
+    let n=0, miss=0;
+    for(const p of r.photos){
+      if(S.lineDone[p.id]) continue;
+      const u=S.users.find(u=>nm(u.n)===nm(p.name)); if(!u){miss++;continue;}
+      const ph=await api('GET',{action:'photo',id:p.id}); if(!ph.ok) continue;
+      const src=await shrinkSrc(`data:${ph.type};base64,${ph.data}`);
+      const k=rkey(u.id); const rr=S.renraku[k]||(S.renraku[k]={msg:'',photos:[],family:'',done:false});
+      rr.photos.push(src); S.lineDone[p.id]=1; n++;
+      if(todayIds().indexOf(u.id)<0){ S.att[dayStr()].push(u.id); }
+    }
+    save(); if(n||manual) toast(n?`LINEから写真${n}枚を取り込みました`:'新しい写真はありません'); if(n) render();
+    if(miss&&manual) toast(`名簿にない名前の写真が${miss}枚ありました`);
+  }catch(e){ if(manual) toast('⚠ LINEの写真を取り込めませんでした'); }
+  lineBusy=false;
+}
+function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
+async function pdfLibs(){
+  if(!window.html2canvas) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  if(!window.jspdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+}
+async function pagesToPdf(els){
+  const pdf=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+  for(let i=0;i<els.length;i++){
+    const c=await window.html2canvas(els[i],{scale:2,backgroundColor:'#ffffff',useCORS:true});
+    let w=210, h=w*c.height/c.width; if(h>297){ h=297; w=h*c.width/c.height; }
+    if(i) pdf.addPage(); pdf.addImage(c.toDataURL('image/jpeg',0.85),'JPEG',(210-w)/2,0,w,h);
+  }
+  return pdf.output('datauristring').split(',')[1];
+}
+document.getElementById('pvDrive').onclick=async()=>{
+  if(!synced()){ syncInfo('drive'); return; }
+  const b=document.getElementById('pvDrive'); if(b.disabled) return; b.disabled=true; const t0=b.textContent; b.textContent='作成中…';
+  try{
+    await pdfLibs(); const els=[...document.querySelectorAll('#pvPages .pg')]; const d=dayStr(); let n=0;
+    if(PV.kind==='連絡帳'){
+      for(let i=0;i<els.length;i++){ const u=userById(PV.ids[i]); b.textContent=`保存中 ${i+1}/${els.length}`;
+        const r=await api('POST',{action:'uploadPdf',kind:'連絡帳',date:d,filename:`連絡帳_${d}_${u.n.replace(/[\s　]/g,'')}.pdf`,data:await pagesToPdf([els[i]])}); if(r.ok) n++; }
+    }else{
+      const name=PV.ids.length===1?userById(PV.ids[0]).n.replace(/[\s　]/g,''):'全員';
+      b.textContent='保存中…';
+      const r=await api('POST',{action:'uploadPdf',kind:'経過記録',date:d,filename:`経過記録_${d}_${name}.pdf`,data:await pagesToPdf(els)}); if(r.ok) n++;
+    }
+    toast(n?`Googleドライブに保存しました（${n}件）`:'⚠ 保存できませんでした');
+  }catch(e){ toast('⚠ 保存できませんでした。通信を確認してください'); }
+  b.disabled=false; b.textContent=t0;
+};
+// 設定用リンク（#sync=URL|合言葉）で一度だけ設定
+(function(){ const h=decodeURIComponent(location.hash||''); if(h.startsWith('#sync=')){ const [url,key]=h.slice(6).split('|'); S.sync={url,key}; save(); history.replaceState(null,'',location.pathname); setTimeout(()=>toast('連携の設定をしました'),300); } })();
 
 /* ヘッダー */
 document.getElementById('prev').onclick=()=>{cur.setDate(cur.getDate()-1);render()};
