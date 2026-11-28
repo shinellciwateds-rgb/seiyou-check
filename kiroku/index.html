@@ -1,0 +1,1159 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eef2f6">
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="介護記録">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<title>介護記録（試作）</title>
+<style>
+:root{
+  --bg:#eef2f6; --card:#ffffff; --ink:#28323c; --sub:#6f7c88; --line:#dbe3ea;
+  --accent:#3b7fb0; --accent-bg:#e1eef8; --accent-ink:#ffffff;
+  --red:#d55a4a; --red-bg:#fde7e3; --amber:#c98a1d; --amber-bg:#fcf0d6; --ok:#3f9a74; --ok-bg:#e0f2e9;
+  --gray-bg:#eef1f4; --shadow:0 2px 12px rgba(30,55,80,.08); --r:16px;
+  --c-vital:#d5694f; --c-meal:#d9962b; --c-water:#3b8fc4; --c-toilet:#8a6cc1; --c-bath:#2f9fa0; --c-nap:#6d7fb8; --c-train:#4f9a5c; --c-note:#7d8791; --c-pick:#b0607e; --c-med:#a8508f; --c-care:#5c86a8;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1a1f25; --card:#242b33; --ink:#eaf0f5; --sub:#a0adb9; --line:#36404a;
+    --accent:#5a9bd0; --accent-bg:#22384a; --red-bg:#4a2a25; --amber-bg:#4a3a1c; --ok-bg:#20402f; --gray-bg:#2c343d; --shadow:none; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1a1f25; --card:#242b33; --ink:#eaf0f5; --sub:#a0adb9; --line:#36404a;
+  --accent:#5a9bd0; --accent-bg:#22384a; --red-bg:#4a2a25; --amber-bg:#4a3a1c; --ok-bg:#20402f; --gray-bg:#2c343d; --shadow:none; color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",system-ui,sans-serif;font-size:17px;line-height:1.5;padding-bottom:40px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);padding:10px 0 0;padding-top:max(10px,env(safe-area-inset-top));border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:19px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.brand .dot{width:32px;height:32px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:#fff;font-size:16px}
+.brand small{font-weight:600;font-size:12px;color:var(--amber);background:var(--amber-bg);padding:2px 8px;border-radius:999px}
+.sp{flex:1}
+.day{display:flex;align-items:center;gap:2px;background:var(--card);border-radius:999px;padding:4px;box-shadow:var(--shadow)}
+.day button{border:0;background:transparent;width:38px;height:38px;border-radius:50%;font-size:18px}
+.day button:active{background:var(--line)}
+.day b{min-width:128px;text-align:center;font-size:16px;white-space:nowrap}
+.day b.notToday{color:var(--amber)}
+.pill{border:0;background:var(--card);height:46px;padding:0 16px;border-radius:999px;box-shadow:var(--shadow);font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.pill.warn{background:var(--amber-bg);color:var(--amber)}
+.gear{border:0;background:var(--card);width:46px;height:46px;border-radius:50%;box-shadow:var(--shadow);font-size:19px}
+nav.tabs{display:flex;gap:4px;margin-top:10px;overflow-x:auto}
+nav.tabs button{border:0;background:transparent;padding:10px 18px 12px;font-weight:700;color:var(--sub);border-bottom:3px solid transparent;white-space:nowrap;font-size:16px}
+nav.tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+main{padding-top:16px}
+.bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.bar h2{margin:0;font-size:18px}
+.bar .count{color:var(--sub);font-size:15px}
+.btn{border:0;border-radius:12px;padding:10px 16px;font-weight:700;background:var(--card);box-shadow:var(--shadow);min-height:46px}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:var(--gray-bg);box-shadow:none}
+.btn.danger{background:var(--red-bg);color:var(--red);box-shadow:none}
+.btn:disabled{opacity:.4}
+.note-banner{background:var(--amber-bg);color:var(--ink);border-radius:12px;padding:10px 14px;font-size:14px;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
+.note-banner b{color:var(--amber)}
+
+/* user cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.ucard{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;border:2px solid transparent;text-align:left;width:100%;display:flex;flex-direction:column;gap:8px}
+.ucard:active{border-color:var(--accent)}
+.ucard .nm{font-size:20px;font-weight:800;display:flex;align-items:baseline;gap:8px}
+.ucard .nm small{font-size:13px;color:var(--sub);font-weight:600}
+.ucard .alert{font-size:13px;color:var(--red);background:var(--red-bg);border-radius:8px;padding:2px 8px;align-self:flex-start}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:13px;padding:3px 9px;border-radius:999px;background:var(--gray-bg);color:var(--sub);white-space:nowrap}
+.chip.done{color:#fff}
+.chip.k-vital.done{background:var(--c-vital)} .chip.k-meal.done{background:var(--c-meal)} .chip.k-water.done{background:var(--c-water)}
+.chip.k-toilet.done{background:var(--c-toilet)} .chip.k-bath.done{background:var(--c-bath)} .chip.k-note.done{background:var(--c-note)}
+.chip.k-nap.done{background:var(--c-nap)} .chip.plan{background:#fff;border:1.5px dashed var(--c-bath);color:var(--c-bath);font-weight:800} .chip.k-pick.done{background:var(--c-pick)} .chip.k-med.done{background:var(--c-med)} .chip.k-care.done{background:var(--c-care)} .chip.k-train.done{background:var(--c-train)}
+.ucard .last{font-size:13px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{background:var(--card);border-radius:var(--r);padding:40px 20px;text-align:center;color:var(--sub)}
+
+/* person view */
+.person{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+@media (max-width:820px){.person{grid-template-columns:1fr}}
+.panel{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:14px}
+.phead{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.phead .back{border:0;background:var(--card);box-shadow:var(--shadow);height:46px;padding:0 16px;border-radius:999px;font-weight:700}
+.phead h2{margin:0;font-size:24px}
+.phead .lv{color:var(--sub);font-size:15px}
+.kinds{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:820px){.kinds{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:520px){.kinds{grid-template-columns:repeat(2,1fr)}}
+.kbtn{border:0;border-radius:14px;padding:14px 6px;min-height:84px;color:#fff;font-weight:800;font-size:17px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.kbtn span{font-size:26px;line-height:1}
+.kbtn small{font-weight:600;font-size:12px;opacity:.9}
+.kbtn:active{filter:brightness(.92)}
+.k-vital.kbtn{background:var(--c-vital)} .k-meal.kbtn{background:var(--c-meal)} .k-water.kbtn{background:var(--c-water)} .k-toilet.kbtn{background:var(--c-toilet)}
+.k-bath.kbtn{background:var(--c-bath)} .k-nap.kbtn{background:var(--c-nap)} .k-train.kbtn{background:var(--c-train)} .k-note.kbtn{background:var(--c-note)} .k-pick.kbtn{background:var(--c-pick)} .k-med.kbtn{background:var(--c-med)} .k-care.kbtn{background:var(--c-care)}
+.feebar{background:var(--amber-bg);border-radius:10px;padding:8px 12px;margin:-4px 0 12px;font-weight:700;font-size:15px}
+.sumrow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+@media (max-width:620px){.sumrow{grid-template-columns:repeat(2,1fr)}}
+.sum{background:var(--gray-bg);border-radius:12px;padding:8px 10px}
+.sum .l{font-size:12px;color:var(--sub)}
+.sum .v{font-weight:800;font-size:17px}
+.sum .v.bad{color:var(--red)}
+.tl{width:100%;border-collapse:collapse}
+.tl td,.tl th{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+.tl th{font-size:13px;color:var(--sub);font-weight:600}
+.tl tr.row{cursor:pointer}
+.tl tr.row:active{background:var(--gray-bg)}
+.tl .tm{width:64px;font-weight:700;font-variant-numeric:tabular-nums}
+.tl .kd{width:96px}
+.tl .by{width:90px;color:var(--sub);font-size:14px}
+.tag{display:inline-block;color:#fff;font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px;white-space:nowrap}
+.tag.k-vital{background:var(--c-vital)} .tag.k-meal{background:var(--c-meal)} .tag.k-water{background:var(--c-water)} .tag.k-toilet{background:var(--c-toilet)}
+.tag.k-bath{background:var(--c-bath)} .tag.k-nap{background:var(--c-nap)} .tag.k-train{background:var(--c-train)} .tag.k-note{background:var(--c-note)} .tag.k-pick{background:var(--c-pick)} .tag.k-med{background:var(--c-med)} .tag.k-care{background:var(--c-care)}
+.bad{color:var(--red);font-weight:800}
+
+/* bulk */
+.seg{display:inline-flex;background:var(--card);border-radius:12px;padding:4px;box-shadow:var(--shadow);gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:8px 16px;border-radius:9px;font-weight:700;min-height:42px}
+.seg button.on{background:var(--accent);color:#fff}
+.btable{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.btable th,.btable td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+.btable th{font-size:13px;color:var(--sub);background:var(--gray-bg);font-weight:600;white-space:nowrap}
+.btable td.nm{font-weight:800;white-space:nowrap;font-size:17px}
+.btable input.num{width:84px;height:46px;border:2px solid var(--line);border-radius:10px;text-align:center;font-size:18px;font-weight:700;background:var(--bg)}
+.btable input.num:focus{outline:none;border-color:var(--accent)}
+.btable input.num.bad{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+.btable .saved{color:var(--ok);font-size:13px;font-weight:700;white-space:nowrap}
+.minis{display:flex;gap:4px;flex-wrap:wrap}
+.mini{border:2px solid var(--line);background:var(--bg);border-radius:10px;min-width:46px;height:44px;padding:0 8px;font-weight:700}
+.mini.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r)}
+
+/* sheet */
+.overlay{position:fixed;inset:0;background:rgba(10,20,30,.38);z-index:50;display:none;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+@media (min-width:700px){.overlay{align-items:center}}
+.sheet{background:var(--card);width:100%;max-width:720px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 18px max(18px,env(safe-area-inset-bottom))}
+@media (min-width:700px){.sheet{border-radius:22px}}
+.sheet h3{margin:0 0 4px;font-size:21px;display:flex;align-items:center;gap:10px}
+.sheet .who{color:var(--sub);font-size:15px;margin-bottom:14px}
+.field{margin:14px 0}
+.field>label{display:block;font-size:14px;color:var(--sub);font-weight:700;margin-bottom:6px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.optsep{flex-basis:100%;font-size:14px;font-weight:700;color:var(--sub);margin-top:8px}
+.opt .yen{display:block;font-size:12px;font-weight:700;color:var(--amber);line-height:1.1}.opt.on .yen{color:inherit}
+.opt{border:2px solid var(--line);background:var(--bg);border-radius:12px;min-height:52px;min-width:64px;padding:0 14px;font-weight:700;font-size:17px}
+.opt.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.vgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:600px){.vgrid{grid-template-columns:repeat(4,1fr)}}
+.vbox{background:var(--bg);border-radius:12px;padding:8px 10px;border:2px solid var(--line)}
+.vbox.bad{border-color:var(--red);background:var(--red-bg)}
+.vbox label{font-size:13px;color:var(--sub);font-weight:700}
+.vbox input{width:100%;border:0;background:transparent;font-size:28px;font-weight:800;padding:0;outline:none}
+.vbox .u{font-size:13px;color:var(--sub)}
+.bp{display:flex;align-items:center;gap:4px}
+.bp input{width:50%}
+textarea{width:100%;min-height:110px;border:2px solid var(--line);border-radius:12px;padding:10px;background:var(--bg);font-size:17px;resize:vertical}
+textarea:focus,.timein:focus{outline:none;border-color:var(--accent)}
+.timein{height:50px;border:2px solid var(--line);border-radius:12px;padding:0 12px;background:var(--bg);font-size:20px;font-weight:700}
+.phr{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.phr button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:15px}
+.sheet .acts{display:flex;gap:10px;margin-top:18px;position:sticky;bottom:-18px;background:var(--card);padding:10px 0 4px}
+.sheet .acts .btn{flex:1;min-height:56px;font-size:18px}
+.sheet .acts .btn.danger{flex:0 0 auto}
+.list-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:56vh;overflow:auto;padding:2px}
+.list-pick .opt{width:100%;text-align:left}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:#28323c;color:#fff;padding:12px 22px;border-radius:999px;font-weight:700;opacity:0;transition:.25s;z-index:80;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.hint{font-size:13px;color:var(--sub)}
+.sec{margin:22px 0 8px;font-weight:800}
+/* テンプレート */
+.tplbtn{border:0;background:var(--accent-bg);color:var(--accent);font-weight:800;border-radius:999px;padding:7px 14px;font-size:15px;margin-top:8px}
+#ov2{z-index:60}
+.tsearch{width:100%;height:50px;border:2px solid var(--line);border-radius:12px;padding:0 14px;background:var(--bg);font-size:18px}
+.tsearch:focus{outline:none;border-color:var(--accent)}
+.tcats{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.tcats button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:700}
+.tcats button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.tlist{display:grid;grid-template-columns:1fr;gap:6px;max-height:48vh;overflow:auto}
+@media (min-width:700px){.tlist{grid-template-columns:1fr 1fr}}
+.tlist button{border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;text-align:left;font-size:16px;min-height:50px}
+.tlist button.used{border-color:var(--ok);background:var(--ok-bg)}
+.tlist .cat{display:block;font-size:11px;color:var(--sub)}
+.tprev{background:var(--gray-bg);border-radius:12px;padding:8px 12px;font-size:14px;color:var(--sub);margin-top:10px;max-height:80px;overflow:auto;white-space:pre-wrap}
+/* 連絡帳 */
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.rcard{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:12px;border:2px solid transparent;text-align:left;display:flex;gap:10px;align-items:center;width:100%}
+.rcard:active{border-color:var(--accent)}
+.rcard .th{width:64px;height:64px;border-radius:12px;background:var(--gray-bg);flex:0 0 64px;display:grid;place-items:center;font-size:26px;overflow:hidden}
+.rcard .th img{width:100%;height:100%;object-fit:cover}
+.rcard .nm{font-weight:800;font-size:18px}
+.st{font-size:12px;font-weight:800;padding:2px 9px;border-radius:999px;display:inline-block}
+.st.none{background:var(--gray-bg);color:var(--sub)} .st.draft{background:var(--amber-bg);color:var(--amber)} .st.done{background:var(--ok-bg);color:var(--ok)}
+.redit{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+@media (max-width:900px){.redit{grid-template-columns:1fr}}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:8px}
+.photos .ph{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--gray-bg);max-width:100%}
+.photos .ph img{width:100%;height:100%;object-fit:cover}
+.photos .ph button{position:absolute;top:4px;right:4px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:16px}
+.addph{display:flex;align-items:center;justify-content:center;gap:8px;border:2px dashed var(--line);border-radius:12px;min-height:64px;font-weight:800;color:var(--accent);cursor:pointer;background:var(--bg)}
+.addph input{display:none}
+.field>label.addph{display:flex;font-size:17px;color:var(--accent);margin:0}
+.book{background:#fffdf7;color:#3a3226;border-radius:18px;box-shadow:var(--shadow);padding:20px;border:1px solid #eadfca}
+.book h4{margin:0;font-size:13px;color:#9a7b4f;letter-spacing:.08em}
+.book .bt{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #eadfca;padding-bottom:8px;margin-bottom:12px;gap:8px;flex-wrap:wrap}
+.book .bt b{font-size:22px}
+.book table{width:100%;border-collapse:collapse;font-size:15px;margin-bottom:12px}
+.book td{border:1px solid #eadfca;padding:6px 8px}
+.book td:first-child{background:#f7efe0;width:84px;font-weight:700;white-space:nowrap}
+.book .msg{white-space:pre-wrap;font-size:16px;line-height:1.8;background:#fff;border:1px solid #eadfca;border-radius:10px;padding:10px 12px;min-height:60px}
+.book .bph{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.book .bph img{width:100%;border-radius:10px;display:block;max-width:100%}
+.book .sub{font-size:13px;font-weight:800;color:#9a7b4f;margin:14px 0 4px}
+.book .by{text-align:right;font-size:13px;color:#8a7a62;margin-top:10px}
+.rbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+/* 印刷プレビュー */
+#pv{position:fixed;inset:0;z-index:90;background:#8a949e;overflow:auto;display:none;-webkit-overflow-scrolling:touch}
+#pv.show{display:block}
+.pvbar{position:sticky;top:0;z-index:2;display:flex;gap:10px;align-items:center;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));background:var(--card);box-shadow:var(--shadow);flex-wrap:wrap}
+.pvbar b{font-size:17px}
+.pvbar .hint{flex:1;min-width:200px}
+.pvpages{padding:20px 12px 60px;display:flex;flex-direction:column;align-items:center;gap:20px}
+.pg{background:#fff;color:#222;width:210mm;max-width:100%;min-height:297mm;padding:14mm 13mm;box-shadow:0 4px 18px rgba(0,0,0,.25);font-size:13px;line-height:1.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.pg .ph1{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #333;padding-bottom:6px;margin-bottom:10px;gap:10px}
+.pg .ph1 h1{margin:0;font-size:20px;letter-spacing:.2em}
+.pg .ph1 .fac{font-size:12px;text-align:right}
+.pg .who2{display:flex;gap:18px;align-items:baseline;margin-bottom:10px;flex-wrap:wrap}
+.pg .who2 b{font-size:18px}
+.pg table.rt{width:100%;border-collapse:collapse}
+.pg table.rt th,.pg table.rt td{border:1px solid #888;padding:5px 7px;text-align:left;vertical-align:top}
+.pg table.rt th{background:#eef0f2;font-weight:700;font-size:12px}
+.pg table.rt td.c{white-space:nowrap;width:1%}
+.pg .bad{color:#c0392b}
+.pg .stamp{display:flex;justify-content:flex-end;margin-top:14px}
+.pg .stamp table{border-collapse:collapse}
+.pg .stamp td{border:1px solid #888;width:64px;text-align:center;font-size:11px;padding:2px}
+.pg .stamp tr:last-child td{height:52px}
+.pg .book{box-shadow:none;border:1px solid #d8ccb4;border-radius:10px;font-size:15px}
+.pg .book .bph{grid-template-columns:repeat(2,1fr)}
+.pg .book .bph img{max-height:85mm;object-fit:cover}
+@page{size:A4;margin:0}
+@media print{
+  body.printing>*:not(#pv){display:none!important}
+  body.printing{padding:0;background:#fff}
+  body.printing #pv{position:static;display:block;background:#fff;overflow:visible}
+  body.printing .pvbar{display:none!important}
+  body.printing .pvpages{padding:0;gap:0;display:block}
+  body.printing .pg{box-shadow:none;width:auto;min-height:0;break-after:page;page-break-after:always}
+  body.printing .pg:last-child{break-after:auto;page-break-after:auto}
+  header,.noprint,.note-banner{display:none!important}
+  body{background:#fff;color:#000;font-size:12px;padding:0}
+  .panel{box-shadow:none;border:1px solid #999;break-inside:avoid;margin-bottom:10px}
+  .tag{color:#000!important;background:none!important;border:1px solid #000;padding:0 4px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand"><div class="dot">記</div>介護記録 <small>試作版</small></div>
+      <div class="sp"></div>
+      <div class="day"><button id="prev" aria-label="前の日">‹</button><b id="dayLabel"></b><button id="next" aria-label="次の日">›</button></div>
+      <button class="pill" id="staffBtn"></button>
+      <button class="gear" id="gearBtn" aria-label="設定">⚙</button>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="list" class="on">利用者一覧</button>
+      <button data-tab="bulk">一括入力</button>
+      <button data-tab="renraku">連絡帳</button>
+      <button data-tab="report">経過記録</button>
+    </nav>
+  </div>
+</header>
+<main class="wrap" id="main"></main>
+
+<div class="overlay" id="ov"><div class="sheet" id="sheet"></div></div>
+<div class="overlay" id="ov2"><div class="sheet" id="sheet2"></div></div>
+<div id="pv"><div class="pvbar"><b id="pvTitle">印刷プレビュー</b><span class="hint" id="pvHint"></span><button class="btn ghost" id="pvClose">閉じる</button><button class="btn" id="pvDrive">☁ ドライブに保存</button><button class="btn primary" id="pvGo">🖨 印刷・PDF保存</button></div><div class="pvpages" id="pvPages"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* 通所介護でよく使う記録テンプレート（試作。現場で追加・修正していく前提） */
+const TPL = [
+ {c:'来所・体調', k:['vital','note'], t:[
+  '送迎車にて来所される。','笑顔で来所される。','表情穏やかに来所される。','来所時、体調の訴えなし。','来所時、ご本人より「変わりない」との事。',
+  '来所時、やや疲れた表情が見られる。','来所時、眠そうな様子が見られる。','ご家族より「昨夜あまり眠れていない」との申し送りあり。','ご家族より「朝食は全量摂取」との申し送りあり。',
+  'ご家族より「便秘気味」との申し送りあり。','ご家族より「咳が出ている」との申し送りあり。','顔色良好。','顔色やや不良。','咳・鼻汁なし。','咳嗽あり、マスク着用していただく。',
+  '鼻汁あり。','微熱あり、様子観察とする。','頭痛の訴えあり。','腰痛の訴えあり。','膝の痛みの訴えあり。','倦怠感の訴えあり。','めまいの訴えあり。','食欲がないとの訴えあり。',
+  '体調の訴えなく、終日元気に過ごされる。','終日体調変化なく過ごされる。','特変なし。']},
+ {c:'送迎', k:['pick'], t:[
+  'お迎え時、玄関でお待ちになっていた。','お迎え時、ご家族より「昨夜はよく眠れた」との事。','お迎え時、ご家族より体調に変わりないとの事。','お迎え時、準備ができておらず、声掛けして支度を手伝う。',
+  '車いすで乗降される。','玄関から車まで手引き歩行で介助する。','段差で見守りを行う。','乗車時ふらつきあり、介助にて乗車される。','車内では穏やかに過ごされる。','車内で他利用者と会話を楽しまれる。','車内でうとうとされていた。',
+  'お送り時、ご家族へ本日の様子を申し送る。','お送り時、ご家族不在のため、玄関内まで誘導し施錠を確認する。','お送り時、居室まで誘導する。','連絡帳をご家族へお渡しする。','お薬・持ち物をご家族へお渡しする。','ご家族送迎にて来所される。','ご家族送迎にて帰宅される。','体調不良のため予定より早く送る。']},
+ {c:'バイタル', k:['vital'], t:[
+  'バイタル安定。','バイタル異常なし。','血圧高めのため、安静後に再検する。','再検にて血圧下降を確認。','再検でも血圧高値のため、看護師へ報告。','血圧低めのため様子観察とする。',
+  '体温37.5℃以上のため、ご家族へ連絡する。','微熱のため、入浴は中止とする。','脈拍不整あり、看護師へ報告。','SpO2低値のため、深呼吸を促し再検する。','再検にて改善を確認。',
+  '降圧剤服用済みとの事。','ご本人より体調良好との事。','看護師へ報告済み。','ご家族へ報告済み。','ケアマネジャーへ報告済み。','かかりつけ医への受診を勧める。']},
+ {c:'食事', k:['meal'], t:[
+  '昼食全量摂取される。','昼食ほぼ全量摂取される。','主食は半分程度摂取される。','副食は好きな物から召し上がる。','食欲旺盛で、おかわりされる。','食欲がなく、声掛けするも少量の摂取にとどまる。',
+  '声掛けで摂取される。','自力摂取される。','一部介助で摂取される。','全介助で摂取される。','ムセなく摂取される。','時々ムセあり、ゆっくり摂取していただく。','ムセ込みあり、とろみ剤を使用する。',
+  '刻み食で提供。','ミキサー食で提供。','おかゆで提供。','とろみ付きで提供。','食事中、姿勢が崩れるため修正する。','食べこぼしあり、エプロン使用。','義歯装着して摂取される。',
+  '「おいしい」と笑顔で話される。','嫌いな物は残される。','おやつ全量摂取される。','おやつは召し上がらず。','食後、口腔ケアを実施する。','食後、自分で歯磨きされる。','義歯洗浄を実施する。']},
+ {c:'水分', k:['water'], t:[
+  '水分摂取良好。','声掛けにて水分摂取される。','水分摂取が少なめのため、こまめに声掛けする。','とろみ茶で提供。','ゼリー飲料で提供。','お茶を好まれず、ジュースで提供。','脱水予防のため水分補給を促す。']},
+ {c:'排泄', k:['toilet'], t:[
+  '自立にてトイレで排尿される。','見守りにてトイレで排尿される。','一部介助にてトイレで排泄される。','全介助にて排泄される。','トイレ誘導にて排尿あり。','トイレ誘導するも排尿なし。',
+  '自らトイレへ行かれる。','尿意の訴えあり、トイレ誘導する。','パッド交換を実施する。','リハビリパンツ交換を実施する。','オムツ交換を実施する。','尿失禁あり、更衣する。','便失禁あり、陰部洗浄する。',
+  '普通便あり。','軟便あり。','硬便あり。','水様便あり、看護師へ報告。','排便あり（中量）。','排便なし。','便秘気味のため、水分摂取を促す。','ズボンの上げ下げのみ介助する。','ポータブルトイレ使用。','陰部の発赤あり、看護師へ報告。']},
+ {c:'入浴', k:['bath'], t:[
+  '一般浴にて入浴される。','リフト浴にて入浴される。','シャワー浴を実施する。','清拭を実施する。','洗身は一部介助、洗髪は全介助。','洗身は自分でされ、背中のみ介助する。','洗髪を実施する。',
+  '浴槽内で気持ちよさそうにされる。','「気持ちよかった」と笑顔で話される。','入浴後、保湿剤を塗布する。','入浴後、軟膏を塗布する。','入浴後、水分補給される。','皮膚状態異常なし。',
+  '背部に発赤あり、看護師へ報告。','臀部に発赤あり、看護師へ報告。','下肢に浮腫あり。','皮膚の乾燥あり、保湿剤塗布。','皮下出血あり、看護師へ報告。','表皮剥離あり、処置する。','爪切りを実施する。','耳掃除を実施する。','ひげ剃りを実施する。',
+  'バイタル不良のため入浴中止とする。','本人の希望により入浴中止とする。','入浴拒否あり、時間を置いて再度声掛けするも拒否のため中止。','入浴を嫌がられたが、声掛けにて入浴される。','入浴中、ふらつきあり、見守り強化する。']},
+ {c:'機能訓練・体操', k:['train'], t:[
+  '個別機能訓練を実施する。','集団体操に参加される。','歩行訓練を実施する。','平行棒内歩行訓練を実施する。','マシントレーニングを実施する。','立ち上がり訓練を実施する。','下肢筋力訓練を実施する。',
+  '口腔体操に参加される。','嚥下体操に参加される。','脳トレに取り組まれる。','意欲的に取り組まれる。','声掛けで参加される。','疲労の訴えあり、休憩を入れながら実施する。','痛みの訴えあり、無理のない範囲で実施する。',
+  '訓練への参加を拒否される。','前回より歩行が安定している。','歩行時ふらつきあり、見守りで実施する。','杖歩行にて実施する。','歩行器使用にて実施する。']},
+ {c:'レク・活動', k:['note'], t:[
+  'レクリエーションに参加される。','レクに積極的に参加され、笑顔が多く見られる。','見学で参加される。','カラオケで歌を披露される。','歌に合わせて手拍子される。','風船バレーに参加される。','ボーリングゲームに参加される。',
+  '輪投げに参加される。','ちぎり絵に取り組まれる。','塗り絵に集中して取り組まれる。','書道に取り組まれる。','脳トレプリントに取り組まれる。','計算ドリルに取り組まれる。','将棋を楽しまれる。','囲碁を楽しまれる。',
+  'トランプを楽しまれる。','麻雀を楽しまれる。','おやつ作りに参加される。','季節の壁飾り作りに参加される。','お手玉で遊ばれる。','洗濯物たたみを手伝ってくださる。','テーブル拭きを手伝ってくださる。','新聞を読んで過ごされる。','テレビを観て過ごされる。']},
+ {c:'様子・交流', k:['note'], t:[
+  '終日穏やかに過ごされる。','笑顔で過ごされる。','他利用者と会話を楽しまれる。','職員と昔の話をされる。','家族の話を嬉しそうにされる。','仲の良い利用者様と談笑される。','一人で静かに過ごされる。',
+  'ソファで休まれる。','落ち着かない様子あり、職員が付き添う。','帰宅願望あり、傾聴し対応する。','同じ話を繰り返される。','物の置き場所がわからなくなる様子あり。','時間の確認を何度かされる。',
+  '不安そうな様子あり、声掛けすると落ち着かれる。','他利用者とのトラブルなし。','他利用者との言い争いあり、席を離して対応する。','イライラした様子が見られる。','涙ぐまれる場面あり、傾聴する。','いつもより口数が少ない。','いつもより活気がない。','普段通り元気に過ごされる。']},
+ {c:'午睡・休息', k:['nap'], t:[
+  '昼食後、ベッドで休まれる。','よく眠られる。','横になるが眠らず過ごされる。','ソファで休まれる。','うたた寝される。','休息を勧めるも希望されず。','休息後、すっきりした表情で起きられる。']},
+ {c:'移動・転倒', k:['note'], t:[
+  '独歩にて移動される。','杖歩行にて移動される。','歩行器にて移動される。','車いすにて移動される。','見守りにて移動される。','手引き歩行にて移動される。','歩行時ふらつきあり、見守りを強化する。',
+  '立ち上がり時ふらつきあり。','転倒なし。','転倒あり、外傷なし。看護師・ご家族へ報告。','ずり落ちあり、外傷なし。','つまずきあり、転倒には至らず。']},
+ {c:'服薬・処置', k:['note','vital','med','care'], t:[
+  '昼食後薬を服用される。','服薬確認する。','服薬介助する。','薬を飲み忘れていたため、ご家族へ連絡する。','目薬を点眼する。','湿布を貼付する。','軟膏を塗布する。','血糖測定を実施する。','インスリン注射を確認する。','処置を実施する（看護師）。']},
+ {c:'服薬', k:['med'], t:[
+  '昼食後薬を服用される。','声掛けにて服用される。','手渡しで自己服用される。','口に入れて介助し、服用を確認する。','服用後、口の中に残りがないことを確認する。','粉薬をとろみに混ぜて服用していただく。','錠剤が飲みにくい様子あり、看護師へ報告。',
+  '服薬を拒否される。時間をおいて再度声掛けし、服用される。','服薬を拒否され、服用できず。ご家族へ報告する。','お薬の持参がなかったため、ご家族へ連絡する。','お薬が1回分多く入っていたため、ご家族へ確認する。','頓服薬を服用される（看護師判断）。','お預かりしたお薬は連絡帳と一緒にお返しする。']},
+ {c:'処置', k:['care'], t:[
+  '看護師にて処置を実施する。','軟膏を塗布する。','湿布を貼り替える。','ガーゼ交換を行う。滲出液少量、汚染なし。','創部に発赤・腫れなし。','創部に軽度の発赤あり、経過観察とする。','保護テープを貼付する。',
+  '点眼する。','爪切りを実施する。','耳垢の除去を行う。','血糖測定を実施する。','インスリン注射を確認する。','吸引を実施する。痰少量。','ストーマ周囲の皮膚に異常なし。','褥瘡の処置を行う。状態は前回と変わりなし。','処置内容をご家族へ連絡帳で報告する。']},
+ {c:'送迎・帰宅', k:['note'], t:[
+  '送迎車にて帰宅される。','笑顔で帰宅される。','ご家族へ様子を伝える。','ご家族へ連絡帳を手渡す。','帰宅時、ご家族不在のため、鍵の場所を確認して入室介助する。','ご自宅内まで付き添う。','送迎中、車酔いの訴えあり。','送迎中、穏やかに過ごされる。','早退される（理由：）。']},
+ {c:'家族・ケアマネ連絡', k:['note'], t:[
+  'ご家族へ電話にて報告する。','ご家族より電話あり。','ケアマネジャーへ報告する。','ケアマネジャーより連絡あり。','次回の利用日変更の連絡あり。','お休みの連絡あり（体調不良）。','お休みの連絡あり（受診のため）。','ご家族より、薬が変更になったと連絡あり。','持ち物の確認をご家族へ依頼する。']},
+ {c:'連絡帳（ご家族へ）', k:['renraku'], t:[
+  '本日もご利用頂き、ありがとうございます。次回もよろしくお願いします。',
+  '今日も元気にお過ごしになりました。','本日も笑顔でお過ごしになりました。','体調もお変わりなく、終日穏やかに過ごされました。','お風呂では「気持ちよかった」と笑顔で話されていました。',
+  '昼食はほぼ全部召し上がりました。','昼食は少なめでしたが、おやつはしっかり召し上がりました。','食欲がなく、昼食は半分ほどでした。ご自宅でも様子を見ていただけますでしょうか。',
+  'レクリエーションでは、皆さんと一緒に楽しまれていました。','カラオケでは得意の歌を披露してくださいました。','体操にも意欲的に参加されていました。','歩行訓練も頑張っていらっしゃいました。',
+  '他の利用者さんとのおしゃべりを楽しまれていました。','昼食後はゆっくり休まれました。','少しお疲れのご様子でした。ご自宅でもゆっくりお休みください。',
+  '入浴時、背中に赤みが見られました。軟膏を塗っています。ご自宅でも様子を見ていただけますと幸いです。','血圧がいつもより高めでした。ご自宅でも様子を見ていただけますでしょうか。',
+  '少し咳が出ていました。ご自宅でも様子を見ていただけますと幸いです。','爪切りをしました。','お洋服を汚してしまったため、着替えをしました。汚れた衣類は袋に入れてお返しします。',
+  '替えの下着（パッド）の補充をお願いいたします。','次回、着替え一式をお持ちいただけますでしょうか。','お薬をお預かりしました。','次回のご利用をお待ちしております。','何かございましたら、お気軽にご連絡ください。']}
+];
+
+/* ===== 基本データ ===== */
+const KINDS = {
+  pick:{n:'送迎',i:'🚐',short:'送迎'},
+  vital:{n:'バイタル',i:'🌡',short:'バイタル'},
+  meal:{n:'食事',i:'🍚',short:'食事'},
+  water:{n:'水分',i:'🥤',short:'水分'},
+  toilet:{n:'排泄',i:'🚻',short:'排泄'},
+  bath:{n:'入浴',i:'🛁',short:'入浴'},
+  med:{n:'服薬',i:'💊',short:'服薬'},
+  care:{n:'処置',i:'🩹',short:'処置'},
+  nap:{n:'午睡',i:'💤',short:'午睡'},
+  train:{n:'機能訓練',i:'💪',short:'訓練'},
+  note:{n:'様子',i:'📝',short:'様子'}
+};
+/* 有料の飲み物（ナーシングネットの諸費用項目と同じ名前・単価） */
+const DRINKS = [['ホットコーヒー',50],['アイスコーヒー',50],['カフェオレ',50],['ミルクティー',50],['ココア',50],['オレンジジュース',50],['りんごジュース',50],['ぶどうジュース',50],['コカコーラ',50],['三ツ矢サイダー',50],['ノンアルコールビール',200],['ノンアルコールビール(500ml)',250],['ノンアルコールカクテル',200],['ノンアルコール日本酒',500]];
+/* 排泄で使う諸費用（ナーシングネットの諸費用項目と同じ名前・単価） */
+const SUPPLIES = {pad:['パット（1枚）',50], pants:['リハビリパンツ(1枚)',100], wash:['洗濯代',100]};
+const FREE_DRINKS = ['お茶','水','牛乳','とろみ茶','その他'];
+const drinkYen = n => { const d=DRINKS.find(x=>x[0]===n); return d?d[1]:0; };
+function feesOf(uid){ const f=[]; entriesOf(uid).forEach(e=>{
+  if(e.kind==='water'&&+e.data.yen>0) f.push({n:e.data.what,yen:+e.data.yen});
+  if(e.kind==='toilet'&&e.data.fees) e.data.fees.forEach(([n,y])=>f.push({n,yen:+y}));
+}); return f; }
+function supplyFees(x){ const f=[]; const cnt=v=>parseInt(v)||0;
+  for(let i=0;i<cnt(x.pad);i++) f.push(SUPPLIES.pad); for(let i=0;i<cnt(x.pants);i++) f.push(SUPPLIES.pants); if(x.wash==='あり') f.push(SUPPLIES.wash); return f; }
+function feeText(uid){ const f=feesOf(uid); if(!f.length) return ''; const c={}; f.forEach(x=>{c[x.n]=c[x.n]||{n:0,yen:0}; c[x.n].n++; c[x.n].yen+=x.yen;}); return Object.keys(c).map(k=>`${k}${c[k].n>1?'×'+c[k].n:''} ${c[k].yen}円`).join('、')+`　合計 ${f.reduce((a,x)=>a+x.yen,0)}円`; }
+const KORDER = ['pick','vital','meal','water','toilet','bath','med','care','nap','train','note'];
+const PHRASES = {
+  note:['笑顔で過ごされる','他利用者と会話を楽しまれる','レクに参加される','穏やかに過ごされる','落ち着かない様子あり','眠そうにされている','ご家族へ連絡済み','特変なし'],
+  vital:['再検あり','ご本人より体調良好との事','看護師へ報告済み'],
+  meal:['ムセなし','ムセあり','声掛けで摂取','一部介助','全介助','刻み食'],
+  toilet:['自立','見守り','一部介助','全介助','失禁あり','パッド交換'],
+  bath:['皮膚状態異常なし','発赤あり','軟膏塗布','爪切り実施','バイタル不良のため中止','本人拒否のため中止'],
+  nap:['よく眠られる','横になるが眠らず'],
+  med:['声掛けで服用','手渡しで自己服用','服用確認済み','看護師へ報告済み','ご家族へ連絡済み'],
+  care:['異常なし','発赤あり','経過観察','看護師にて実施','ご家族へ連絡帳で報告'],
+  pick:['ご家族へ申し送り済み','体調変化なし','車いすで乗降','手引き歩行で介助','ご家族不在・施錠確認','連絡帳をお渡し'],
+  train:['意欲的に取り組まれる','疲労の訴えあり','声掛けで実施']
+};
+const DEMO_USERS = ['青木 ハナ','石川 正男','上田 キヨ','遠藤 勝','大野 トミ子','加藤 実','木村 ヨシ','工藤 清','佐々木 ミツ','鈴木 弘','高田 フミ','千葉 一郎','中村 サダ','西田 健二','橋本 タケ','藤原 茂','松本 ユキ','村上 進','山口 チヨ','渡辺 博'];
+const DEMO_LV = ['要介護1','要介護2','要支援2','要介護3','要介護1','要介護2','要介護4','要介護1','要介護2','要支援1','要介護1','要介護3','要介護2','要介護1','要介護5','要介護2','要介護1','要介護3','要介護2','要介護1'];
+const DEMO_STAFF = ['施設長','相談員','看護 A','看護 B','介護 A','介護 B','介護 C'];
+
+const KEY='kaigo-kiroku-v1';
+let S = load();
+function load(){
+  try{const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.users) return s;}catch(e){}
+  return demoState();
+}
+function save(){ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('⚠ 保存できませんでした')} }
+function canStore(){ try{ localStorage.setItem('kk_t','1'); localStorage.removeItem('kk_t'); return true; }catch(e){ return false; } }
+function demoState(){
+  const users = DEMO_USERS.map((n,i)=>({id:'u'+(i+1),n,lv:DEMO_LV[i],warn:i===3?'降圧剤服用中・血圧注意':i===6?'嚥下注意（とろみ）':i===14?'皮膚剥離しやすい':''}));
+  const st = {users,staff:DEMO_STAFF.slice(),me:'',att:{},entries:[],demo:true};
+  // 今日のサンプル記録
+  const d=ymd(new Date());
+  const ids = attDefault(d,users);
+  st.att[d]=ids;
+  const rnd = mulberry(7);
+  const add=(uid,time,kind,data,by)=>st.entries.push({id:uid+kind+time+Math.random().toString(36).slice(2,6),d,uid,time,kind,data,by,ts:Date.now()});
+  ids.slice(0,10).forEach((uid,k)=>{
+    add(uid,'08:'+String(30+k*2).padStart(2,'0'),'pick',{dir:'お迎え',how:k===5?'ご家族送迎':'送迎車',walk:k===4?'車いす':''},'介護 A');
+    const t=(36+rnd()*1.1).toFixed(1), sys=Math.round(112+rnd()*45), dia=Math.round(64+rnd()*22), p=Math.round(62+rnd()*24), o=Math.round(94+rnd()*5);
+    add(uid,'09:'+String(10+k*3).padStart(2,'0'),'vital',{t,sys:String(k===2?168:sys),dia:String(dia),p:String(p),o:String(o)},k%2?'看護 A':'看護 B');
+    add(uid,'10:'+String(5+k*2).padStart(2,'0'),'water',{ml:'150',what:'お茶'},'介護 A');
+    if(k===0||k===3) add(uid,'14:'+String(30+k).padStart(2,'0'),'water',k?{ml:'150',what:'ココア',yen:'50'}:{ml:'150',what:'ホットコーヒー',yen:'50'},'介護 C');
+    if(k<6) add(uid,'10:'+String(20+k*4).padStart(2,'0'),'bath',{how:k===4?'リフト浴':'一般浴',hair:'洗髪あり',memo:''},'介護 B');
+    if(k<8) add(uid,'12:'+String(10+k).padStart(2,'0'),'meal',{main:['10','8','10','5'][k%4],side:['10','8','5','10','8'][k%5],memo:k===6?'ムセなし':''},'介護 C');
+    if(k<5) add(uid,'12:'+String(40+k).padStart(2,'0'),'med',{when:'昼食後',how:k===2?'介助で服用':'声掛けで服用'},'看護 A');
+    if(k%3===0) add(uid,'11:'+String(15+k).padStart(2,'0'),'toilet',{type:'尿',where:'トイレ',amt:'中',memo:'自立'},'介護 A');
+  });
+  add(ids[0],'13:30','note',{text:'昼食後、他利用者と会話を楽しまれる。笑顔多く見られる。'},'相談員');
+  add(ids[3],'13:00','nap',{from:'13:00',to:'13:40',memo:'よく眠られる'},'介護 B');
+  st.renraku={}; st.renraku[d+'|'+ids[0]]={msg:'本日の体温は36.0℃、血圧は115/85でした。\nお風呂は一般浴で入られました。\n昼食はほぼ全部召し上がりました。\n昼食後、他の利用者さんとのおしゃべりを楽しまれていました。\n次回のご利用をお待ちしております。',photos:[],family:'',done:true,by:'相談員'};
+  return st;
+}
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function attDefault(d,users){ // デモ用：日付ごとに15人くらい
+  const r=mulberry(parseInt(d.replace(/-/g,''),10)); return users.filter(()=>r()<0.75).map(u=>u.id);
+}
+
+/* ===== 日付・ユーティリティ ===== */
+function ymd(dt){return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')}
+function nowHM(){const n=new Date();return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')}
+let cur = new Date(); let tab='list'; let personId=null; let bulkKind='vital';
+const W='日月火水木金土';
+function dayStr(){return ymd(cur)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function userById(id){return S.users.find(u=>u.id===id)}
+function todayIds(){const d=dayStr(); if(!S.att[d]){ S.att[d]= (S.plan&&S.plan[d])?S.plan[d].slice():S.demo?attDefault(d,S.users):[]; save(); } return S.att[d].filter(id=>userById(id));}
+function bathPlanned(uid){ const b=S.bathPlan&&S.bathPlan[dayStr()]; return !!(b&&b.includes(uid)); }
+function entriesOf(uid,d=dayStr()){return S.entries.filter(e=>e.d===d&&e.uid===uid).sort((a,b)=>a.time.localeCompare(b.time))}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1800)}
+
+/* 異常値の目安（試作。施設長・看護師と要相談） */
+const LIM={t:[35.5,37.5],sys:[90,160],dia:[0,100],p:[50,100],o:[93,101]};
+function isBad(k,v){ if(v===''||v==null||isNaN(+v)) return false; const [lo,hi]=LIM[k]; return +v<lo||+v>=hi; }
+
+function describe(e){
+  const x=e.data||{};
+  switch(e.kind){
+    case 'vital':{
+      const p=[];
+      if(x.t) p.push(`体温 <span class="${isBad('t',x.t)?'bad':''}">${esc(x.t)}℃</span>`);
+      if(x.sys||x.dia) p.push(`血圧 <span class="${isBad('sys',x.sys)||isBad('dia',x.dia)?'bad':''}">${esc(x.sys)}/${esc(x.dia)}</span>`);
+      if(x.p) p.push(`脈拍 <span class="${isBad('p',x.p)?'bad':''}">${esc(x.p)}</span>`);
+      if(x.o) p.push(`SpO2 <span class="${isBad('o',x.o)?'bad':''}">${esc(x.o)}%</span>`);
+      return p.join('　')+(x.memo?'<br>'+esc(x.memo):'');
+    }
+    case 'meal': return `主食 ${esc(x.main||'-')}割　副食 ${esc(x.side||'-')}割`+(x.memo?'　'+esc(x.memo):'');
+    case 'water': return `${esc(x.what||'水分')} ${esc(x.ml)}ml`+(+x.yen?`（諸費用 ${esc(x.yen)}円）`:'')+(x.memo?'　'+esc(x.memo):'');
+    case 'toilet': return [x.type,x.where,x.amt&&('量 '+x.amt)].filter(Boolean).map(esc).join('・')+(x.fees&&x.fees.length?`（諸費用 ${[x.pad&&x.pad!=='なし'&&'パット'+x.pad,x.pants&&x.pants!=='なし'&&'リハパン'+x.pants,x.wash==='あり'&&'洗濯'].filter(Boolean).map(esc).join('・')} ${x.fees.reduce((a,f)=>a+ +f[1],0)}円）`:'')+(x.memo?'　'+esc(x.memo):'');
+    case 'bath': return [x.how,x.how!=='中止'&&x.hair].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
+    case 'med': return esc(x.when||'')+(x.how?'・'+(/拒否|持参なし/.test(x.how)?`<span class="bad">${esc(x.how)}</span>`:esc(x.how)):'')+(x.memo?'　'+esc(x.memo):'');
+    case 'care': return [x.what,x.part&&('部位：'+x.part)].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
+    case 'pick': return [x.dir,x.how,x.walk].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
+    case 'nap': return `${esc(x.from||'')}〜${esc(x.to||'')}`+(x.memo?'　'+esc(x.memo):'');
+    case 'train': return [x.what].filter(Boolean).map(esc).join('')+(x.memo?'　'+esc(x.memo):'');
+    case 'note': return esc(x.text||'').replace(/\n/g,'<br>');
+  }
+  return '';
+}
+function plain(e){const d=document.createElement('div');d.innerHTML=describe(e);return d.textContent}
+
+/* ===== 画面 ===== */
+function render(){
+  const isToday = dayStr()===ymd(new Date());
+  const lab=document.getElementById('dayLabel');
+  lab.textContent=`${cur.getMonth()+1}月${cur.getDate()}日（${W[cur.getDay()]}）`+(isToday?'':' ');
+  lab.className=isToday?'':'notToday';
+  const sb=document.getElementById('staffBtn');
+  sb.innerHTML = S.me?`👤 ${esc(S.me)}`:'👤 記録者を選ぶ'; sb.className='pill'+(S.me?'':' warn');
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  const m=document.getElementById('main');
+  if(tab==='renraku'&&!personId) lineImport(false);
+  if(tab==='renraku'){ m.innerHTML= personId?viewRenrakuEdit(personId):viewRenrakuList(); bindMain(); if(personId) bindRenraku(personId); return; }
+  if(tab==='list' && personId) m.innerHTML=viewPerson(personId);
+  else if(tab==='list') m.innerHTML=viewList();
+  else if(tab==='bulk') m.innerHTML=viewBulk();
+  else if(tab==='renraku') m.innerHTML= personId?viewRenrakuEdit(personId):viewRenrakuList();
+  else m.innerHTML=viewReport();
+  bindMain();
+}
+function banner(){
+  return `<div class="note-banner noprint">ℹ️ <div><b>試作版です。</b>記録はこのiPadの中だけに保存されます（他のiPadとは共有されません）。${S.demo?'名前はサンプルです。':''}</div></div>`;
+}
+function statusChips(uid){
+  const es=entriesOf(uid); const has=k=>es.some(e=>e.kind===k);
+  const ml=es.filter(e=>e.kind==='water').reduce((a,e)=>a+(+e.data.ml||0),0);
+  const tc=es.filter(e=>e.kind==='toilet').length;
+  const meal=es.find(e=>e.kind==='meal');
+  const bath=es.find(e=>e.kind==='bath');
+  const c=(k,label,on)=>`<span class="chip k-${k} ${on?'done':''}">${label}</span>`;
+  const pk=es.filter(e=>e.kind==='pick'); const pin=pk.find(e=>e.data.dir==='お迎え'), pout=pk.find(e=>e.data.dir==='お送り');
+  const fee=feesOf(uid).reduce((a,x)=>a+x.yen,0);
+  return (fee?`<span class="chip k-water done" style="background:var(--amber)">諸費用 ${fee}円</span>`:'')+c('pick',pout?`送迎 ${pin?pin.time+'〜':''}${pout.time}`:pin?`お迎え ${pin.time}`:'送迎',pk.length>0)+c('vital','バイタル',has('vital'))+c('meal',meal?`食事 ${meal.data.main||'-'}/${meal.data.side||'-'}`:'食事',!!meal)+c('water',ml?`水分 ${ml}ml`:'水分',ml>0)+c('toilet',tc?`排泄 ${tc}回`:'排泄',tc>0)+(bath||!bathPlanned(uid)?c('bath',bath?`入浴 ${bath.data.how}`:'入浴',!!bath):'<span class="chip plan">🛁 入浴予定</span>')+c('med','服薬',has('med'))+c('note','様子',has('note'));
+}
+function vitalAlert(uid){
+  const v=entriesOf(uid).filter(e=>e.kind==='vital').pop(); if(!v) return '';
+  const x=v.data; const bads=[];
+  if(isBad('t',x.t)) bads.push('体温'); if(isBad('sys',x.sys)||isBad('dia',x.dia)) bads.push('血圧'); if(isBad('p',x.p)) bads.push('脈拍'); if(isBad('o',x.o)) bads.push('SpO2');
+  return bads.length?`<span class="alert">⚠ ${bads.join('・')}が目安外</span>`:'';
+}
+function viewList(){
+  const ids=todayIds();
+  let h=banner()+`<div class="bar"><h2>本日の利用者</h2><span class="count">${ids.length}名</span><div class="sp"></div><button class="btn" data-act="pickAtt">＋ 利用者を選ぶ</button></div>`;
+  if(!ids.length) return h+`<div class="empty">この日の利用者がいません。<br>右上の「＋ 利用者を選ぶ」から追加してください。</div>`;
+  h+='<div class="grid">';
+  ids.forEach(id=>{
+    const u=userById(id); const es=entriesOf(id); const last=es[es.length-1];
+    h+=`<button class="ucard" data-act="open" data-id="${id}">
+      <div class="nm">${esc(u.n)}<small>${esc(u.lv||'')}</small></div>
+      ${vitalAlert(id)}
+      ${u.warn?`<div class="hint">⚠ ${esc(u.warn)}</div>`:''}
+      <div class="chips">${statusChips(id)}</div>
+      <div class="last">${last?`最終 ${last.time} ${KINDS[last.kind].n}：${esc(plain(last))}`:'まだ記録がありません'}</div>
+    </button>`;
+  });
+  return h+'</div>';
+}
+function viewPerson(uid){
+  const u=userById(uid); const es=entriesOf(uid);
+  const ids=todayIds(); const ix=ids.indexOf(uid);
+  const prevId=ix>0?ids[ix-1]:null, nextId=ix>=0&&ix<ids.length-1?ids[ix+1]:null;
+  const v=es.filter(e=>e.kind==='vital').pop();
+  const ml=es.filter(e=>e.kind==='water').reduce((a,e)=>a+(+e.data.ml||0),0);
+  const meal=es.find(e=>e.kind==='meal');
+  const tc=es.filter(e=>e.kind==='toilet').length;
+  let h=`<div class="phead noprint"><button class="back" data-act="back">‹ 一覧へ</button>
+    <h2>${esc(u.n)} 様</h2><span class="lv">${esc(u.lv||'')}</span><div class="sp" style="flex:1"></div>
+    <button class="btn ghost" data-act="prRec" data-id="${uid}">🖨 印刷・PDF</button>
+    <button class="btn ghost" data-act="open" data-id="${prevId||''}" ${prevId?'':'disabled'}>‹ 前の人</button>
+    <button class="btn ghost" data-act="open" data-id="${nextId||''}" ${nextId?'':'disabled'}>次の人 ›</button></div>`;
+  if(u.warn) h+=`<div class="note-banner" style="background:var(--red-bg)">⚠ <div><b style="color:var(--red)">注意事項：</b>${esc(u.warn)}</div></div>`;
+  h+=`<div class="person"><div class="panel noprint"><div class="hint" style="margin-bottom:8px">記録する項目をタップ</div><div class="kinds">`+
+    KORDER.map(k=>`<button class="kbtn k-${k}" data-act="new" data-kind="${k}"><span>${KINDS[k].i}</span>${KINDS[k].n}</button>`).join('')+
+    `</div><button class="btn" style="width:100%;margin-top:10px;min-height:56px" data-act="toRenraku">📒 連絡帳を書く ${renrakuStatus(uid)}</button></div><div class="panel">
+    <div class="sumrow">
+      <div class="sum"><div class="l">バイタル（最新）</div><div class="v">${v?describeShortVital(v.data):'—'}</div></div>
+      <div class="sum"><div class="l">食事 主食/副食</div><div class="v">${meal?`${meal.data.main||'-'} / ${meal.data.side||'-'} 割`:'—'}</div></div>
+      <div class="sum"><div class="l">水分 合計</div><div class="v">${ml?ml+' ml':'—'}</div></div>
+      <div class="sum"><div class="l">排泄</div><div class="v">${tc?tc+' 回':'—'}</div></div>
+    </div>${feeText(uid)?`<div class="feebar">💴 諸費用：${esc(feeText(uid))}</div>`:''}
+    <table class="tl"><thead><tr><th>時刻</th><th>項目</th><th>内容</th><th>記録者</th></tr></thead><tbody>`;
+  if(!es.length) h+=`<tr><td colspan="4" class="hint" style="padding:30px;text-align:center">まだ記録がありません。左の項目ボタンから記録します。</td></tr>`;
+  es.forEach(e=>{ h+=`<tr class="row" data-act="edit" data-eid="${e.id}"><td class="tm">${e.time}</td><td class="kd"><span class="tag k-${e.kind}">${KINDS[e.kind].short}</span></td><td>${describe(e)}</td><td class="by">${esc(e.by||'')}</td></tr>`; });
+  h+=`</tbody></table><div class="hint" style="margin-top:8px">行をタップすると修正・削除できます。</div></div></div>`;
+  return h;
+}
+function describeShortVital(x){
+  const s=(k,v,u='')=>v?`<span class="${isBad(k,v)?'bad':''}">${esc(v)}${u}</span>`:'-';
+  return `${s('t',x.t,'℃')} ${x.sys?`<span class="${isBad('sys',x.sys)||isBad('dia',x.dia)?'bad':''}">${esc(x.sys)}/${esc(x.dia)}</span>`:''}`;
+}
+
+/* 一括入力 */
+function viewBulk(){
+  const ids=todayIds();
+  const segs=[['pick','送迎'],['vital','バイタル'],['meal','食事'],['water','水分'],['bath','入浴']];
+  let h=banner()+`<div class="bar"><div class="seg">${segs.map(([k,n])=>`<button data-act="bk" data-kind="${k}" class="${bulkKind===k?'on':''}">${KINDS[k].i} ${n}</button>`).join('')}</div>
+    <div class="sp" style="flex:1"></div><span class="count">${ids.length}名</span></div>`;
+  if(!ids.length) return h+`<div class="empty">この日の利用者がいません。「利用者一覧」で選んでください。</div>`;
+  h+='<div class="scrollx"><table class="btable"><thead><tr><th>利用者</th>';
+  if(bulkKind==='vital') h+='<th>体温 ℃</th><th>血圧 上</th><th>血圧 下</th><th>脈拍</th><th>SpO2 %</th><th></th>';
+  if(bulkKind==='meal') h+='<th>主食（割）</th><th>副食（割）</th><th></th>';
+  if(bulkKind==='water') h+='<th>水分を追加（お茶）</th><th>本日合計</th>';
+  if(bulkKind==='bath') h+='<th>入浴</th><th></th>';
+  if(bulkKind==='pick') h+='<th>お迎え（到着）</th><th>お送り（出発）</th>';
+  h+='</tr></thead><tbody>';
+  ids.forEach(id=>{
+    const u=userById(id); const es=entriesOf(id);
+    const first=es.find(e=>e.kind===bulkKind);
+    const x=first?first.data:{};
+    h+=`<tr data-uid="${id}"><td class="nm">${esc(u.n)}</td>`;
+    if(bulkKind==='vital'){
+      const inp=(k,ph)=>`<td><input class="num ${isBad(k,x[k])?'bad':''}" inputmode="decimal" data-bv="${k}" value="${esc(x[k]||'')}" placeholder="${ph}"></td>`;
+      h+=inp('t','36.5')+inp('sys','120')+inp('dia','70')+inp('p','70')+inp('o','97')+`<td class="saved">${first?'✓ '+first.time:''}</td>`;
+    }
+    if(bulkKind==='meal'){
+      const sel=(f)=>`<td><div class="minis">${['10','8','5','3','0'].map(v=>`<button class="mini ${x[f]===v?'on':''}" data-act="bm" data-f="${f}" data-v="${v}">${v}</button>`).join('')}</div></td>`;
+      h+=sel('main')+sel('side')+`<td class="saved">${first?'✓':''}</td>`;
+    }
+    if(bulkKind==='water'){
+      const ml=es.filter(e=>e.kind==='water').reduce((a,e)=>a+(+e.data.ml||0),0);
+      h+=`<td><div class="minis">${['100','150','200','250'].map(v=>`<button class="mini" data-act="bw" data-v="${v}">＋${v}</button>`).join('')}</div></td><td style="font-weight:800;font-size:18px">${ml} ml</td>`;
+    }
+    if(bulkKind==='pick'){
+      const pc=dir=>{const e=es.find(e=>e.kind==='pick'&&e.data.dir===dir); return `<td>${e?`<span class="saved" style="font-size:18px">✓ ${e.time}</span> <button class="mini" data-act="bp" data-v="${dir}" data-undo="1">取消</button>`:`<button class="mini" data-act="bp" data-v="${dir}">${dir==='お迎え'?'🚐 着いた':'🚐 出発'}</button>`}</td>`};
+      h+=pc('お迎え')+pc('お送り');
+    }
+    if(bulkKind==='bath'){
+      h+=`<td><div class="minis">${['一般浴','リフト浴','シャワー浴','清拭','中止','なし'].map(v=>`<button class="mini ${(first?x.how:'')===v?'on':''}" data-act="bb" data-v="${v}">${v}</button>`).join('')}</div></td><td class="saved">${first?'✓ '+first.time:''}</td>`;
+    }
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  if(bulkKind==='vital') h+=`<div class="hint" style="margin-top:8px">入力すると自動で保存されます。赤枠は目安外（体温37.5以上、血圧上160以上／90未満、脈拍100以上／50未満、SpO2 93未満）。目安は試作用の仮の値です。</div>`;
+  if(bulkKind==='pick') h+=`<div class="hint" style="margin-top:8px">押した時刻で送迎の記録が入ります（送迎車）。ご家族送迎や乗降の様子は、利用者の画面の「送迎」から直せます。</div>`;
+  if(bulkKind==='water') h+=`<div class="hint" style="margin-top:8px">ボタンを押すたびに、その時刻で水分の記録が1件追加されます。間違えたら利用者の画面から削除できます。</div>`;
+  return h;
+}
+
+/* 経過記録（介護経過表のような一覧） */
+function viewReport(){
+  const ids=todayIds();
+  let h=banner()+`<div class="bar noprint"><h2>${cur.getMonth()+1}月${cur.getDate()}日の経過記録</h2><div class="sp" style="flex:1"></div><button class="btn primary" data-act="prRecAll">🖨 全員分を印刷・PDF</button></div>`;
+  let any=false;
+  ids.forEach(id=>{
+    const es=entriesOf(id); if(!es.length) return; any=true;
+    const u=userById(id);
+    h+=`<div class="panel" style="margin-bottom:12px"><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px"><b style="font-size:19px">${esc(u.n)} 様</b><span class="hint">${esc(u.lv||'')}</span><span style="flex:1"></span><button class="btn ghost noprint" data-act="prRec" data-id="${id}" style="min-height:38px;padding:4px 12px">🖨 この方だけ</button></div>
+    <table class="tl"><thead><tr><th>時刻</th><th>項目</th><th>内容</th><th>記録者</th></tr></thead><tbody>`+
+    es.map(e=>`<tr><td class="tm">${e.time}</td><td class="kd"><span class="tag k-${e.kind}">${KINDS[e.kind].short}</span></td><td>${describe(e)}</td><td class="by">${esc(e.by||'')}</td></tr>`).join('')+'</tbody></table></div>';
+  });
+  if(!any) h+='<div class="empty">この日の記録はまだありません。</div>';
+  return h;
+}
+
+/* ===== 操作 ===== */
+function bindMain(){
+  document.querySelectorAll('#main [data-act]').forEach(el=>{
+    const a=el.dataset.act;
+    if(el.tagName==='INPUT') return;
+    el.onclick=()=>{
+      if(a==='open'){ if(!el.dataset.id) return; personId=el.dataset.id; render(); scrollTo(0,0); }
+      else if(a==='back'){ personId=null; render(); }
+      else if(a==='new'){ openSheet(personId,el.dataset.kind,null); }
+      else if(a==='edit'){ const e=S.entries.find(x=>x.id===el.dataset.eid); if(e) openSheet(e.uid,e.kind,e); }
+      else if(a==='pickAtt'){ openAttPicker(); }
+      else if(a==='bk'){ bulkKind=el.dataset.kind; render(); }
+      else if(a==='print'){ window.print(); }
+      else if(a==='lineImport'){ lineImport(true); }
+      else if(a==='prRecAll'){ printRecords(todayIds()); }
+      else if(a==='prRec'){ printRecords([el.dataset.id]); }
+      else if(a==='prBookAll'){ printBooks(todayIds().filter(id=>{const r=getR(id);return r&&r.done})); }
+      else if(a==='prBook'){ printBooks([el.dataset.id]); }
+      else if(a==='toRenraku'){ tab='renraku'; render(); scrollTo(0,0); }
+      else if(a==='ropen'){ personId=el.dataset.id; render(); scrollTo(0,0); }
+      else if(a==='rback'){ personId=null; render(); }
+      else if(a==='bm'||a==='bb'||a==='bw'||a==='bp'){ bulkTap(el,a); }
+    };
+  });
+  document.querySelectorAll('#main input[data-bv]').forEach(inp=>{
+    inp.onchange=()=>bulkVital(inp);
+    inp.oninput=()=>inp.classList.toggle('bad',isBad(inp.dataset.bv,inp.value));
+  });
+}
+function needStaff(cb){ if(S.me) return cb(); openStaffPicker(cb); }
+function upsertFirst(uid,kind,patch){
+  const d=dayStr(); let e=S.entries.find(x=>x.d===d&&x.uid===uid&&x.kind===kind);
+  if(!e){ e={id:uid+kind+Date.now().toString(36)+Math.random().toString(36).slice(2,5),d,uid,time:nowHM(),kind,data:{},by:S.me,ts:Date.now()}; S.entries.push(e); }
+  Object.assign(e.data,patch); e.by=S.me; e.ts=Date.now(); save(); return e;
+}
+function bulkVital(inp){
+  needStaff(()=>{
+    const uid=inp.closest('tr').dataset.uid;
+    const e=upsertFirst(uid,'vital',{[inp.dataset.bv]:inp.value.trim()});
+    inp.closest('tr').querySelector('.saved').textContent='✓ '+e.time;
+  });
+}
+function bulkTap(el,a){
+  needStaff(()=>{
+    const uid=el.closest('tr').dataset.uid;
+    if(a==='bm'){ upsertFirst(uid,'meal',{[el.dataset.f]:el.dataset.v}); }
+    if(a==='bb'){
+      const d=dayStr();
+      if(el.dataset.v==='なし'){ S.entries=S.entries.filter(x=>!(x.d===d&&x.uid===uid&&x.kind==='bath')); save(); }
+      else upsertFirst(uid,'bath',{how:el.dataset.v,hair:'洗髪あり'});
+    }
+    if(a==='bp'){
+      const d=dayStr(), dir=el.dataset.v;
+      if(el.dataset.undo){ S.entries=S.entries.filter(x=>!(x.d===d&&x.uid===uid&&x.kind==='pick'&&x.data.dir===dir)); save(); }
+      else { S.entries.push({id:uid+'p'+Date.now().toString(36),d,uid,time:nowHM(),kind:'pick',data:{dir,how:'送迎車'},by:S.me,ts:Date.now()}); save(); toast(`${userById(uid).n} 様 ${dir} ${nowHM()}`); }
+    }
+    if(a==='bw'){ S.entries.push({id:uid+'w'+Date.now().toString(36),d:dayStr(),uid,time:nowHM(),kind:'water',data:{ml:el.dataset.v,what:'お茶'},by:S.me,ts:Date.now()}); save(); toast(`${userById(uid).n} 様 水分 ${el.dataset.v}ml`); }
+    render();
+  });
+}
+
+/* ===== 入力シート ===== */
+const ov=document.getElementById('ov'), sh=document.getElementById('sheet');
+function closeSheet(){ov.classList.remove('show')}
+ov.onclick=e=>{if(e.target===ov) closeSheet()};
+function opts(name,list,val){return `<div class="opts" data-name="${name}">`+list.map(v=>`<button type="button" class="opt ${val===v?'on':''}" data-v="${esc(v)}">${esc(v)}</button>`).join('')+'</div>'}
+function phr(kind,target){const p=PHRASES[kind]||[]; return `<button type="button" class="tplbtn" data-kind="${kind}" data-target="${target}">📋 テンプレートから選ぶ</button>`+(p.length?`<div class="phr" data-target="${target}">`+p.map(t=>`<button type="button">${esc(t)}</button>`).join('')+'</div>':'')}
+
+function openSheet(uid,kind,entry){
+  needStaff(()=>{
+  const u=userById(uid); const x=entry?{...entry.data}:{};
+  let body='';
+  if(kind==='vital'){
+    const vb=(k,l,u2,ph)=>`<div class="vbox ${isBad(k,x[k])?'bad':''}"><label>${l}</label><input inputmode="decimal" data-f="${k}" value="${esc(x[k]||'')}" placeholder="${ph}"><div class="u">${u2}</div></div>`;
+    body=`<div class="vgrid">${vb('t','体温','℃','36.5')}
+      <div class="vbox ${isBad('sys',x.sys)||isBad('dia',x.dia)?'bad':''}" id="bpbox"><label>血圧</label><div class="bp"><input inputmode="numeric" data-f="sys" value="${esc(x.sys||'')}" placeholder="120">/<input inputmode="numeric" data-f="dia" value="${esc(x.dia||'')}" placeholder="70"></div><div class="u">mmHg</div></div>
+      ${vb('p','脈拍','回/分','70')}${vb('o','SpO2','%','97')}</div>
+      <div class="field"><label>メモ</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('vital','memo')}</div>`;
+  }
+  if(kind==='meal'){
+    const w=['10','9','8','7','6','5','4','3','2','1','0'];
+    body=`<div class="field"><label>主食（割）</label>${opts('main',w,x.main)}</div>
+      <div class="field"><label>副食（割）</label>${opts('side',w,x.side)}</div>
+      <div class="field"><label>メモ</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('meal','memo')}</div>`;
+  }
+  if(kind==='water'){
+    body=`<div class="field"><label>量（ml）</label>${opts('ml',['50','100','150','200','250','300'],x.ml||'150')}</div>
+      <div class="field"><label>種類</label><div class="opts" data-name="what">${FREE_DRINKS.map(v=>`<button type="button" class="opt ${(x.what||'お茶')===v?'on':''}" data-v="${esc(v)}">${esc(v)}</button>`).join('')}
+        <div class="optsep">有料（諸費用に入ります）</div>${DRINKS.map(([v,y])=>`<button type="button" class="opt ${x.what===v?'on':''}" data-v="${esc(v)}">${esc(v)}<small class="yen">${y}円</small></button>`).join('')}</div></div>`;
+  }
+  if(kind==='toilet'){
+    body=`<div class="field"><label>種類</label>${opts('type',['尿','便','尿・便','なし'],x.type||'尿')}</div>
+      <div class="field"><label>場所</label>${opts('where',['トイレ','Pトイレ','パッド','オムツ'],x.where||'トイレ')}</div>
+      <div class="field"><label>量</label>${opts('amt',['少','中','多'],x.amt||'')}</div>
+      <div class="optsep" style="margin-top:14px">有料（諸費用に入ります）</div>
+      <div class="field"><label>パット（1枚 50円）</label>${opts('pad',['なし','1枚','2枚','3枚'],x.pad||'なし')}</div>
+      <div class="field"><label>リハビリパンツ（1枚 100円）</label>${opts('pants',['なし','1枚','2枚','3枚'],x.pants||'なし')}</div>
+      <div class="field"><label>洗濯代（1回 100円）</label>${opts('wash',['なし','あり'],x.wash||'なし')}</div>
+      <div class="field"><label>メモ</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('toilet','memo')}</div>`;
+  }
+  if(kind==='bath'){
+    body=`<div class="field"><label>入浴方法</label>${opts('how',['一般浴','リフト浴','シャワー浴','清拭','中止'],x.how||'一般浴')}</div>
+      <div class="field"><label>洗髪</label>${opts('hair',['洗髪あり','洗髪なし'],x.hair||'洗髪あり')}</div>
+      <div class="field"><label>メモ（皮膚の状態など）</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('bath','memo')}</div>`;
+  }
+  if(kind==='med'){
+    body=`<div class="field"><label>いつの薬</label>${opts('when',['昼食前','昼食後','食間','10時','15時','頓服'],x.when||'昼食後')}</div>
+      <div class="field"><label>服薬の様子</label>${opts('how',['自己服用','声掛けで服用','介助で服用','拒否','持参なし'],x.how||'声掛けで服用')}</div>
+      <div class="field"><label>メモ（お薬の名前・様子など）</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('med','memo')}</div>`;
+  }
+  if(kind==='care'){
+    body=`<div class="field"><label>処置の内容</label>${opts('what',['軟膏塗布','湿布','ガーゼ交換','点眼','爪切り','血糖測定','インスリン','吸引','褥瘡処置','その他'],x.what||'軟膏塗布')}</div>
+      <div class="field"><label>部位</label><input data-f="part" value="${esc(x.part||'')}" placeholder="例：背中、右膝" style="width:100%;font-size:18px;padding:10px;border:2px solid var(--line);border-radius:12px"></div>
+      <div class="field"><label>メモ（状態など）</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('care','memo')}</div>`;
+  }
+  if(kind==='pick'){
+    const back=+String(entry?entry.time:nowHM()).slice(0,2)>=13||entriesOf(uid).some(e=>e.kind==='pick'&&e.data.dir==='お迎え');
+    body=`<div class="field"><label>便</label>${opts('dir',['お迎え','お送り'],x.dir||(back?'お送り':'お迎え'))}</div>
+      <div class="field"><label>方法</label>${opts('how',['送迎車','ご家族送迎','自力（徒歩など）'],x.how||'送迎車')}</div>
+      <div class="field"><label>乗降</label>${opts('walk',['独歩','見守り','手引き','車いす'],x.walk||'')}</div>
+      <div class="field"><label>メモ（ご家族への申し送りなど）</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('pick','memo')}</div>`;
+  }
+  if(kind==='nap'){
+    body=`<div class="field"><label>時間</label><input class="timein" type="time" data-f="from" value="${esc(x.from||'13:00')}"> 〜 <input class="timein" type="time" data-f="to" value="${esc(x.to||'14:00')}"></div>
+      <div class="field"><label>メモ</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('nap','memo')}</div>`;
+  }
+  if(kind==='train'){
+    body=`<div class="field"><label>内容</label>${opts('what',['個別機能訓練','集団体操','歩行訓練','マシン','口腔体操'],x.what||'個別機能訓練')}</div>
+      <div class="field"><label>メモ</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('train','memo')}</div>`;
+  }
+  if(kind==='note'){
+    body=`<div class="field"><label>様子・特記事項</label><textarea data-f="text" style="min-height:150px">${esc(x.text||'')}</textarea>${phr('note','text')}<div class="hint" style="margin-top:6px">定型文をタップすると追加されます。iPadのマイク（音声入力）も使えます。</div></div>`;
+  }
+  sh.innerHTML=`<h3><span class="tag k-${kind}" style="font-size:16px">${KINDS[kind].i} ${KINDS[kind].n}</span>${entry?'の修正':''}</h3>
+    <div class="who">${esc(u.n)} 様　／　記録者：${esc(entry?entry.by:S.me)}</div>
+    <div class="field"><label>時刻</label><input class="timein" type="time" id="etime" value="${entry?entry.time:nowHM()}"></div>
+    ${body}
+    <div class="acts">${entry?'<button class="btn danger" id="del">削除</button>':''}<button class="btn ghost" id="cancel">やめる</button><button class="btn primary" id="ok">保存</button></div>`;
+  ov.classList.add('show');
+  sh.querySelectorAll('.opts').forEach(g=>g.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+    const was=b.classList.contains('on'); g.querySelectorAll('.opt').forEach(o=>o.classList.remove('on')); if(!(was&&(g.dataset.name==='amt'||g.dataset.name==='walk'))) b.classList.add('on');
+  }));
+  sh.querySelectorAll('.phr').forEach(p=>p.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const ta=sh.querySelector(`[data-f="${p.dataset.target}"]`); appendText(ta,b.textContent); ta.focus();
+  }));
+  sh.querySelectorAll('.tplbtn').forEach(b=>b.onclick=()=>openTpl(b.dataset.kind,sh.querySelector(`[data-f="${b.dataset.target}"]`)));
+  if(kind==='vital'){
+    sh.querySelectorAll('input[data-f]').forEach(i=>i.oninput=()=>{
+      const k=i.dataset.f; if(k==='sys'||k==='dia'){const s=sh.querySelector('[data-f=sys]').value,d=sh.querySelector('[data-f=dia]').value; document.getElementById('bpbox').classList.toggle('bad',isBad('sys',s)||isBad('dia',d));}
+      else i.closest('.vbox').classList.toggle('bad',isBad(k,i.value));
+    });
+    setTimeout(()=>{const f=sh.querySelector('[data-f=t]'); if(f&&!entry) f.focus();},150);
+  }
+  document.getElementById('cancel').onclick=closeSheet;
+  if(entry) document.getElementById('del').onclick=ev=>{ const b=ev.currentTarget; if(!b.dataset.sure){b.dataset.sure=1;b.textContent='もう一度押すと削除';return;} S.entries=S.entries.filter(e=>e.id!==entry.id); save(); closeSheet(); render(); toast('削除しました'); };
+  document.getElementById('ok').onclick=()=>{
+    const data={};
+    sh.querySelectorAll('.opts').forEach(g=>{const on=g.querySelector('.opt.on'); data[g.dataset.name]=on?on.dataset.v:'';});
+    sh.querySelectorAll('[data-f]').forEach(i=>data[i.dataset.f]=i.value.trim());
+    if(kind==='note'&&!data.text){toast('内容を入力してください');return;}
+    if(kind==='vital'&&!data.t&&!data.sys&&!data.p&&!data.o){toast('数値を入力してください');return;}
+    if(kind==='meal'&&!data.main&&!data.side){toast('割合を選んでください');return;}
+    if(kind==='toilet'){ const f=supplyFees(data); if(f.length) data.fees=f; }
+    if(kind==='water'){ const y=drinkYen(data.what); if(y) data.yen=String(y); else delete data.yen; }
+    const time=document.getElementById('etime').value||nowHM();
+    if(entry){ Object.assign(entry,{time,data,ts:Date.now()}); }
+    else S.entries.push({id:uid+kind+Date.now().toString(36),d:dayStr(),uid,time,kind,data,by:S.me,ts:Date.now()});
+    save(); closeSheet(); render(); toast('保存しました');
+  };
+  });
+}
+
+/* 記録者・利用者の選択 */
+function openStaffPicker(cb){
+  sh.innerHTML=`<h3>👤 記録者を選んでください</h3><div class="who">記録に名前が残ります。次からは選び直すまでこのままです。</div>
+    <div class="list-pick">${S.staff.map(n=>`<button class="opt ${S.me===n?'on':''}" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div>
+    <div class="acts"><button class="btn ghost" id="cancel">閉じる</button></div>`;
+  ov.classList.add('show');
+  sh.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{S.me=b.dataset.n;save();closeSheet();render();toast(`記録者：${S.me}`); if(cb) setTimeout(cb,50);});
+  document.getElementById('cancel').onclick=closeSheet;
+}
+function openAttPicker(){
+  const d=dayStr(); const set=new Set(todayIds());
+  sh.innerHTML=`<h3>本日の利用者を選ぶ</h3><div class="who">${cur.getMonth()+1}月${cur.getDate()}日に来られる方をタップ${S.plan&&S.plan[d]?'（予定表から入っています）':''}</div>
+    <label class="addph" style="margin:8px 0 12px">📅 ナーシングネットの利用月間予定表（Excel）を読み込む<input type="file" accept=".xlsm,.xlsx,.xls" id="planFile"></label>
+    <div class="list-pick">${S.users.map(u=>`<button class="opt ${set.has(u.id)?'on':''}" data-id="${u.id}">${esc(u.n)}</button>`).join('')}</div>
+    <div class="acts"><button class="btn primary" id="ok">決定</button></div>`;
+  ov.classList.add('show');
+  sh.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>b.classList.toggle('on'));
+  document.getElementById('planFile').onchange=e=>{ const f=e.target.files[0]; e.target.value=''; if(f) importPlan(f); };
+  document.getElementById('ok').onclick=()=>{
+    const on=[...sh.querySelectorAll('[data-id].on')].map(b=>b.dataset.id);
+    S.att[d]=S.users.map(u=>u.id).filter(id=>on.includes(id)); save(); closeSheet(); render();
+  };
+}
+/* ===== ナーシングネットの利用月間予定表（xlsm）を読み込む ===== */
+async function importPlan(file){
+  toast('予定表を読み込んでいます…');
+  let P;
+  try{
+    if(!window.XLSX) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+    const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+    const ws=wb.Sheets['予定']||wb.Sheets[wb.SheetNames[0]];
+    P=parsePlan(XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false}));
+  }catch(err){ toast('予定表を読み込めませんでした'); return; }
+  if(!P.people.length){ toast('予定表の形が違うようです（「予定」シートの氏名の行が見つかりません）'); return; }
+  const key=n=>String(n).replace(/[\s　]/g,'');
+  const known=new Set(S.demo?[]:S.users.map(u=>key(u.n)));
+  const add=P.people.filter(p=>!known.has(key(p.n))).length;
+  const visits=P.people.reduce((a,p)=>a+p.days.length,0), baths=P.people.reduce((a,p)=>a+p.bath.length,0);
+  sh.innerHTML=`<h3>📅 ${P.y}年${P.m}月の予定表</h3>
+    <div class="who">${P.people.length}名・延べ${visits}回（入浴の予定 ${baths}回）</div>
+    <div class="hint" style="font-size:15px;line-height:1.7">${S.demo?'<b>サンプルの名前と記録は消えて、予定表の名前に入れ替わります。</b><br>':''}${add?`名簿にない${add}名を名簿に足します。<br>`:''}毎日の「本日の利用者」が予定表から自動で入ります。すでに記録がある日は、記録のある人も残します。</div>
+    <div class="list-pick" style="max-height:38vh;overflow:auto;margin-top:10px">${P.people.map(p=>`<div class="opt" style="display:flex;justify-content:space-between;align-items:center"><span>${esc(p.n)} <small class="hint">${esc(p.lv)}</small></span><small class="hint">${p.days.length}回${p.bath.length?'・入浴'+p.bath.length:''}</small></div>`).join('')}</div>
+    <div class="acts"><button class="btn ghost" id="cancel">やめる</button><button class="btn primary" id="ok">読み込む</button></div>`;
+  ov.classList.add('show');
+  document.getElementById('cancel').onclick=closeSheet;
+  document.getElementById('ok').onclick=()=>{
+    if(S.demo){ S.users=[]; S.entries=[]; S.renraku={}; S.att={}; S.demo=false; }
+    S.plan=S.plan||{}; S.bathPlan=S.bathPlan||{};
+    const idOf={};
+    P.people.forEach((p,i)=>{ let u=S.users.find(u=>key(u.n)===key(p.n));
+      if(!u){ u={id:'u'+Date.now().toString(36)+i,n:p.n,lv:p.lv,warn:''}; S.users.push(u); } else if(p.lv) u.lv=p.lv;
+      idOf[p.n]=u.id; });
+    const last=new Date(P.y,P.m,0).getDate();
+    for(let dd=1; dd<=last; dd++){
+      const d=`${P.y}-${String(P.m).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+      const ids=P.people.filter(p=>p.days.includes(dd)).map(p=>idOf[p.n]);
+      S.plan[d]=ids; S.bathPlan[d]=P.people.filter(p=>p.bath.includes(dd)).map(p=>idOf[p.n]);
+      const had=[...new Set(S.entries.filter(e=>e.d===d).map(e=>e.uid))];
+      if(ids.length||had.length) S.att[d]=[...new Set(ids.concat(had))]; else delete S.att[d];
+    }
+    if(cur.getFullYear()!==P.y||cur.getMonth()+1!==P.m){ const f=Object.keys(S.plan).sort().find(d=>d.startsWith(`${P.y}-${String(P.m).padStart(2,'0')}`)&&S.plan[d].length); if(f) cur=new Date(f+'T00:00'); }
+    save(); closeSheet(); personId=null; tab='list'; render(); toast(`${P.m}月の予定を読み込みました（${P.people.length}名）`);
+    if(synced()) api('POST',{action:'roster',names:S.users.map(u=>u.n)}).catch(()=>{});
+  };
+}
+function parsePlan(rows){
+  let y=0,m=0;
+  for(const r of rows.slice(0,6)) for(const c of r){ const t=String(c).match(/令和\s*(\d+)\s*年\s*(\d+)\s*月/); if(t){ y=2018+ +t[1]; m=+t[2]; } }
+  const hi=rows.findIndex(r=>r.includes('氏名')&&r.includes('項目'));
+  if(hi<0||!y) return {y,m,people:[]};
+  const H=rows[hi], nc=H.indexOf('氏名'), lc=H.indexOf('介護度'), ic=H.indexOf('項目');
+  const dayCol={}; H.forEach((c,i)=>{ const n=+c; if(String(c).trim()!==''&&n>=1&&n<=31&&i>ic) dayCol[n]=i; });
+  const marks=r=>Object.keys(dayCol).map(Number).filter(dd=>{ const v=String(r[dayCol[dd]]).trim(); return v&&v!=='-'; });
+  const people=[]; let curP=null;
+  rows.slice(hi+1).forEach(r=>{
+    const item=String(r[ic]).trim();
+    if(item==='利用'&&String(r[nc]).trim()){ curP={n:String(r[nc]).trim(),lv:String(r[lc]||'').trim(),days:marks(r),bath:[]}; if(curP.days.length) people.push(curP); }
+    else if(item==='入浴'&&curP) curP.bath=marks(r);
+  });
+  return {y,m,people};
+}
+function openSettings(){
+  sh.innerHTML=`<h3>⚙ 設定（試作）</h3>
+    <div class="field"><label>記録者の名前（1行に1人）</label><textarea id="stf">${esc(S.staff.join('\n'))}</textarea></div>
+    <div class="field"><label>利用者名簿（1行に1人。「名前,介護度,注意事項」の形で貼り付けできます）</label><textarea id="usr" style="min-height:180px">${esc(S.users.map(u=>[u.n,u.lv||'',u.warn||''].join(',').replace(/,+$/,'')).join('\n'))}</textarea>
+    <div class="hint">名簿を変えても、すでに入っている記録は名前が同じ人に残ります。</div></div>
+    <div class="field"><label>マイテンプレート（よく使う文を1行に1つ。テンプレートの「マイテンプレート」に出ます）</label><textarea id="mytpl">${esc((S.myTpl||[]).join('\n'))}</textarea></div>
+    <div class="field"><label>シャイン管理アプリとの連携（設定した人だけが触る所です）</label>
+      <input class="tsearch" id="syncUrl" placeholder="シャイン管理アプリと同じURL（https://script.google.com/...）" value="${esc((S.sync||{}).url||'')}">
+      <input class="tsearch" id="syncKey" placeholder="合言葉（管理アプリと同じ ADMIN_KEY）" value="${esc((S.sync||{}).key||'')}" style="margin-top:8px">
+      <div class="rbtns"><button class="btn ghost" id="syncTest" type="button">接続テスト</button><span class="hint" id="syncMsg"></span></div>
+      <div class="hint">保存すると、名簿の名前がLINE連携にも送られます（LINEで名前を送ったときに照合するため）。</div></div>
+    <div class="field"><label>保存の仕組みについて</label><div class="hint" style="font-size:15px">今は試作のため、このiPadの中だけに保存しています。本番ではGoogleスプレッドシートに保存して、どのiPad・パソコンからでも同じ記録を見られるようにする予定です。</div></div>
+    <div class="acts"><button class="btn danger" id="reset">サンプルに戻す</button><button class="btn ghost" id="cancel">やめる</button><button class="btn primary" id="ok">保存</button></div>`;
+  ov.classList.add('show');
+  document.getElementById('cancel').onclick=closeSheet;
+  document.getElementById('reset').onclick=ev=>{ const b=ev.currentTarget; if(!b.dataset.sure){b.dataset.sure=1;b.textContent='もう一度押すと戻します';return;} S=demoState(); save(); closeSheet(); personId=null; render(); toast('サンプルに戻しました'); };
+  document.getElementById('ok').onclick=()=>{
+    S.sync={url:document.getElementById('syncUrl').value.trim(),key:document.getElementById('syncKey').value.trim()};
+    S.myTpl=document.getElementById('mytpl').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    S.staff=document.getElementById('stf').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    const lines=document.getElementById('usr').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    const old=S.users; let n=old.length;
+    S.users=lines.map(l=>{const [nm,lv,...w]=l.split(/[,\t、]/).map(s=>s.trim()); const ex=old.find(u=>u.n===nm); return {id:ex?ex.id:'u'+(++n)+Date.now().toString(36),n:nm,lv:lv||'',warn:w.join('、')};});
+    if(!S.staff.includes(S.me)) S.me='';
+    save(); closeSheet(); personId=null; render(); toast('保存しました');
+    if(synced()) api('POST',{action:'roster',names:S.users.map(u=>u.n)}).catch(()=>toast('⚠ 名簿をLINE連携に送れませんでした'));
+  };
+  document.getElementById('syncTest').onclick=async()=>{
+    const m=document.getElementById('syncMsg'); const keep=S.sync;
+    S.sync={url:document.getElementById('syncUrl').value.trim(),key:document.getElementById('syncKey').value.trim()};
+    m.textContent='確認中…';
+    try{ const r=await api('GET',{action:'ping'}); m.textContent=r.ok?`✓ つながりました（LINEグループ：${r.group}）`:'✕ '+(r.error||'つながりません'); }
+    catch(e){ m.textContent='✕ つながりません。URLを確認してください'; }
+    S.sync=keep;
+  };
+}
+
+/* ===== テンプレート選択 ===== */
+function appendText(ta,t){ const v=ta.value.replace(/\s+$/,''); ta.value = v ? v+(/[。！？\n]$/.test(v)?'':'。')+(ta.dataset.nl?'\n':'')+t : t; ta.dispatchEvent(new Event('input')); }
+function allTpl(){ const my=(S.myTpl||[]); return (my.length?[{c:'マイテンプレート',k:[],t:my}]:[]).concat(TPL); }
+function openTpl(kind,ta){
+  const cats=allTpl();
+  let cat=(cats.find(c=>c.k.includes(kind))||cats[0]).c; let q='';
+  const ov2=document.getElementById('ov2'), s2=document.getElementById('sheet2');
+  const total=TPL.reduce((a,c)=>a+c.t.length,0);
+  s2.innerHTML=`<h3>📋 テンプレート</h3><div class="who">タップすると文章に追加されます（続けて何個でも選べます）。全${total}文</div>
+    <input class="tsearch" id="tq" placeholder="🔍 ことばで探す（例：入浴、ムセ、発赤）">
+    <div class="tcats" id="tcats"></div><div class="tlist" id="tlist"></div>
+    <div class="tprev" id="tprev"></div>
+    <div class="acts"><button class="btn primary" id="tclose">閉じる</button></div>`;
+  ov2.classList.add('show');
+  const draw=()=>{
+    document.getElementById('tcats').innerHTML=cats.map(c=>`<button class="${!q&&c.c===cat?'on':''}" data-c="${esc(c.c)}">${esc(c.c)}（${c.t.length}）</button>`).join('');
+    const items = q ? cats.flatMap(c=>c.t.filter(t=>t.includes(q)).map(t=>({t,c:c.c}))) : cats.find(c=>c.c===cat).t.map(t=>({t}));
+    document.getElementById('tlist').innerHTML = items.length? items.map(it=>`<button data-t="${esc(it.t)}" class="${ta.value.includes(it.t)?'used':''}">${it.c?`<span class="cat">${esc(it.c)}</span>`:''}${esc(it.t)}</button>`).join('') : '<div class="hint">見つかりませんでした。</div>';
+    document.getElementById('tprev').textContent=ta.value||'（まだ何も入っていません）';
+    document.querySelectorAll('#tcats button').forEach(b=>b.onclick=()=>{cat=b.dataset.c;q='';document.getElementById('tq').value='';draw();});
+    document.querySelectorAll('#tlist button').forEach(b=>b.onclick=()=>{appendText(ta,b.dataset.t);b.classList.add('used');document.getElementById('tprev').textContent=ta.value;});
+  };
+  document.getElementById('tq').oninput=e=>{q=e.target.value.trim();draw();};
+  document.getElementById('tclose').onclick=()=>ov2.classList.remove('show');
+  ov2.onclick=e=>{if(e.target===ov2) ov2.classList.remove('show')};
+  draw();
+}
+
+/* ===== 連絡帳 ===== */
+function rkey(uid,d=dayStr()){return d+'|'+uid}
+function getR(uid){ S.renraku=S.renraku||{}; return S.renraku[rkey(uid)]; }
+function renrakuStatus(uid){ const r=getR(uid); if(!r||(!r.msg&&!(r.photos||[]).length)) return '<span class="st none">未作成</span>'; return r.done?'<span class="st done">完成</span>':'<span class="st draft">作成中</span>'; }
+function daySummary(uid){
+  const es=entriesOf(uid); const v=es.filter(e=>e.kind==='vital').pop(); const meal=es.find(e=>e.kind==='meal'); const bath=es.find(e=>e.kind==='bath');
+  const ml=es.filter(e=>e.kind==='water').reduce((a,e)=>a+(+e.data.ml||0),0); const tc=es.filter(e=>e.kind==='toilet').length;
+  return {v:v&&v.data, meal:meal&&meal.data, bath:bath&&bath.data, ml, tc, train:es.some(e=>e.kind==='train'), notes:es.filter(e=>e.kind==='note').map(e=>e.data.text)};
+}
+function draftFor(uid){
+  const x=daySummary(uid); const p=[];
+  if(x.v){ const vs=[]; if(x.v.t) vs.push(`体温は${x.v.t}℃`); if(x.v.sys) vs.push(`血圧は${x.v.sys}/${x.v.dia}`); if(vs.length) p.push(`本日の${vs.join('、')}でした。`); }
+  if(x.bath){ p.push(x.bath.how==='中止'?'本日の入浴はお休みしました。':`お風呂は${x.bath.how}で入られました。`); }
+  if(x.meal){ const m=+x.meal.main, s=+x.meal.side; p.push(m>=8&&s>=8?'昼食はほぼ全部召し上がりました。':`昼食は主食${x.meal.main||'-'}割、おかず${x.meal.side||'-'}割召し上がりました。`); }
+  if(x.train) p.push('機能訓練にも取り組まれました。');
+  x.notes.forEach(n=>p.push(n));
+  if(!p.length) p.push('今日も元気にお過ごしになりました。');
+  p.push('次回のご利用をお待ちしております。');
+  return p.join('\n');
+}
+function viewRenrakuList(){
+  const ids=todayIds();
+  const n=ids.filter(id=>{const r=getR(id);return r&&r.done}).length;
+  let h=banner()+`<div class="bar"><h2>連絡帳</h2><span class="count">完成 ${n} / ${ids.length}名</span><div class="sp" style="flex:1"></div><button class="btn" data-act="lineImport">📥 LINEの写真を取り込む</button><button class="btn primary" data-act="prBookAll" ${n?'':'disabled'}>🖨 完成分をまとめて印刷・PDF</button></div>`;
+  if(!ids.length) return h+'<div class="empty">この日の利用者がいません。</div>';
+  h+='<div class="rgrid">'+ids.map(id=>{const u=userById(id); const r=getR(id); const ph=r&&r.photos&&r.photos[0];
+    return `<button class="rcard" data-act="ropen" data-id="${id}"><div class="th">${ph?`<img src="${ph}" alt="">`:'📒'}</div><div><div class="nm">${esc(u.n)}</div>${renrakuStatus(id)} ${r&&r.photos&&r.photos.length?`<span class="hint">📷${r.photos.length}</span>`:''}</div></button>`}).join('')+'</div>';
+  return h;
+}
+function viewRenrakuEdit(uid){
+  const u=userById(uid); S.renraku=S.renraku||{}; const r=getR(uid)||{msg:'',photos:[],family:'',done:false};
+  return `<div class="phead noprint"><button class="back" data-act="rback">‹ 連絡帳一覧へ</button><h2>${esc(u.n)} 様の連絡帳</h2><span id="rst">${renrakuStatus(uid)}</span></div>
+  <div class="redit"><div class="panel noprint">
+    <div class="field" style="margin-top:0"><label>今日のご様子（ご家族へ）</label>
+      <textarea id="rmsg" data-nl="1" style="min-height:170px" placeholder="「今日の記録から下書き」を押すと、バイタル・食事・入浴などから文章を作ります">${esc(r.msg)}</textarea>
+      <div class="rbtns"><button class="btn ghost" id="rdraft">✨ 今日の記録から下書き</button><button type="button" class="tplbtn" id="rtpl" style="margin-top:0">📋 テンプレートから選ぶ</button></div></div>
+    <div class="field"><label>写真</label>
+      <label class="addph">📷 写真を撮る・選ぶ<input type="file" accept="image/*" multiple id="rph"></label>
+      <div class="photos" id="rphotos"></div></div>
+    <div class="field"><label>ご家族からの連絡（連絡帳に書いてあった内容など）</label><textarea id="rfam" style="min-height:70px">${esc(r.family||'')}</textarea></div>
+    <div class="acts" style="position:static"><button class="btn ${r.done?'ghost':'primary'}" id="rdone">${r.done?'作成中に戻す':'✓ 完成にする'}</button></div>
+  </div>
+  <div><div class="hint noprint" style="margin-bottom:6px">ご家族に渡す連絡帳のイメージ　<button class="btn" data-act="prBook" data-id="${uid}" style="min-height:38px;padding:4px 12px">🖨 この連絡帳を印刷・PDF</button></div><div id="rprev"></div></div></div>`;
+}
+function bookHTML(uid){
+  const u=userById(uid); const r=getR(uid)||{}; const x=daySummary(uid);
+  const vt=x.v?[x.v.t&&`体温 ${esc(x.v.t)}℃`,x.v.sys&&`血圧 ${esc(x.v.sys)}/${esc(x.v.dia)}`,x.v.p&&`脈拍 ${esc(x.v.p)}`].filter(Boolean).join('　'):'—';
+  return `<div class="book"><div class="bt"><div><h4>デイサービスシャイン　連絡帳</h4><b>${esc(u.n)} 様</b></div><span>${cur.getFullYear()}年${cur.getMonth()+1}月${cur.getDate()}日（${W[cur.getDay()]}）</span></div>
+    <table><tr><td>健康チェック</td><td>${vt}</td></tr>
+    <tr><td>お食事</td><td>${x.meal?`主食 ${esc(x.meal.main||'-')}割　おかず ${esc(x.meal.side||'-')}割`:'—'}</td></tr>
+    <tr><td>お風呂</td><td>${x.bath?esc(x.bath.how):'—'}</td></tr>
+    <tr><td>水分</td><td>${x.ml?x.ml+' ml':'—'}</td></tr>
+    <tr><td>お手洗い</td><td>${x.tc?x.tc+' 回':'—'}</td></tr></table>
+    <div class="sub">今日のご様子</div><div class="msg">${esc(r.msg||'')}</div>
+    ${(r.photos||[]).length?`<div class="sub">今日の一枚</div><div class="bph">${r.photos.map(p=>`<img src="${p}" alt="">`).join('')}</div>`:''}
+    ${r.family?`<div class="sub">ご家族からの連絡</div><div class="msg">${esc(r.family)}</div>`:''}
+    <div class="by">記入：${esc(r.by||S.me||'')}</div></div>`;
+}
+function bindRenraku(uid){
+  S.renraku=S.renraku||{}; const k=rkey(uid);
+  const get=()=>S.renraku[k]||(S.renraku[k]={msg:'',photos:[],family:'',done:false});
+  const prev=()=>{document.getElementById('rprev').innerHTML=bookHTML(uid); document.getElementById('rst').innerHTML=renrakuStatus(uid);};
+  const drawPh=()=>{const r=get(); document.getElementById('rphotos').innerHTML=r.photos.map((p,i)=>`<div class="ph"><img src="${p}" alt=""><button data-i="${i}" aria-label="写真を消す">✕</button></div>`).join('');
+    document.querySelectorAll('#rphotos button').forEach(b=>b.onclick=()=>{get().photos.splice(+b.dataset.i,1);save();drawPh();prev();});};
+  const msg=document.getElementById('rmsg'), fam=document.getElementById('rfam');
+  msg.oninput=()=>{const r=get(); r.msg=msg.value; r.by=S.me; save(); prev();};
+  fam.oninput=()=>{get().family=fam.value; save(); prev();};
+  document.getElementById('rdraft').onclick=()=>{ if(msg.value.trim()&&!msg.dataset.sure){msg.dataset.sure=1;toast('もう一度押すと、今の文章を下書きで置きかえます');return;} delete msg.dataset.sure; msg.value=draftFor(uid); msg.oninput(); toast('下書きを作りました。直してから完成にしてください'); };
+  document.getElementById('rtpl').onclick=()=>openTpl('renraku',msg);
+  document.getElementById('rph').onchange=async e=>{
+    const files=[...e.target.files]; e.target.value='';
+    let ok=0, bad=0;
+    for(const f of files){ try{ get().photos.push(await shrink(f)); ok++; }catch(err){ bad++; } }
+    if(bad) toast(`写真を${bad}枚読み込めませんでした（HEIC形式はiPad・iPhone以外では開けないことがあります）`);
+    if(ok){ let stored=true; try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(err){ stored=false; }
+      // 保存できなくても写真は画面に残す（消さない）
+      if(!stored) toast(canStore()?'⚠ iPadの保存容量がいっぱいです。写真は表示していますが、閉じると消えます':'写真を入れました（この確認用ページでは、閉じると消えます）');
+      else if(!bad) toast(`写真を${ok}枚入れました`); }
+    drawPh(); prev();
+  };
+  document.getElementById('rdone').onclick=()=>needStaff(()=>{const r=get(); r.done=!r.done; r.by=S.me; save(); render(); toast(r.done?'完成にしました':'作成中に戻しました');});
+  drawPh(); prev();
+}
+function shrink(file){ return new Promise((res,rej)=>{ const url=URL.createObjectURL(file); const img=new Image();
+  img.onload=()=>{ const m=900, sc=Math.min(1,m/Math.max(img.width,img.height)); const c=document.createElement('canvas'); c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg',0.72)); };
+  img.onerror=()=>{URL.revokeObjectURL(url);
+    if(!window.createImageBitmap) return rej();
+    createImageBitmap(file).then(bm=>{ const m=900, sc=Math.min(1,m/Math.max(bm.width,bm.height)); const c=document.createElement('canvas'); c.width=Math.round(bm.width*sc); c.height=Math.round(bm.height*sc); c.getContext('2d').drawImage(bm,0,0,c.width,c.height); res(c.toDataURL('image/jpeg',0.72)); }).catch(rej); };
+  img.src=url; }); }
+
+/* ===== 印刷・PDF ===== */
+function dateJP(){return `${cur.getFullYear()}年${cur.getMonth()+1}月${cur.getDate()}日（${W[cur.getDay()]}）`}
+function recordPage(uid){
+  const u=userById(uid); const es=entriesOf(uid);
+  return `<div class="pg"><div class="ph1"><h1>介護経過記録</h1><div class="fac">デイサービスシャイン<br>${dateJP()}</div></div>
+  <div class="who2"><b>${esc(u.n)} 様</b><span>${esc(u.lv||'')}</span>${u.warn?`<span>注意：${esc(u.warn)}</span>`:''}</div>
+  <table class="rt"><thead><tr><th>時刻</th><th>項目</th><th>内容</th><th>記録者</th></tr></thead><tbody>`+
+  (es.length?es.map(e=>`<tr><td class="c">${e.time}</td><td class="c">${KINDS[e.kind].n}</td><td>${describe(e)}</td><td class="c">${esc(e.by||'')}</td></tr>`).join(''):'<tr><td colspan="4">記録なし</td></tr>')+
+  `</tbody></table>${feeText(uid)?`<div style="margin-top:8px;font-size:12px"><b>諸費用</b>　${esc(feeText(uid))}</div>`:''}<div class="stamp"><table><tr><td>施設長</td><td>相談員</td><td>看護</td></tr><tr><td></td><td></td><td></td></tr></table></div></div>`;
+}
+function openPreview(title,html,count){
+  if(!count){toast('印刷する記録がありません');return;}
+  document.getElementById('pvTitle').textContent=title;
+  document.getElementById('pvHint').textContent=`A4・${count}枚。iPadでは印刷画面の「共有」→「ファイルに保存」でPDFになります。パソコンでは送信先を「PDFに保存」に。`;
+  document.getElementById('pvPages').innerHTML=html;
+  document.getElementById('pv').classList.add('show'); document.getElementById('pv').scrollTop=0;
+}
+let PV={};
+function printRecords(ids){ ids=ids.filter(id=>entriesOf(id).length); PV={kind:'経過記録',ids}; openPreview(`経過記録　${dateJP()}`,ids.map(recordPage).join(''),ids.length); }
+function printBooks(ids){ PV={kind:'連絡帳',ids}; openPreview(`連絡帳　${dateJP()}`,ids.map(id=>`<div class="pg">${bookHTML(id)}</div>`).join(''),ids.length); }
+document.getElementById('pvClose').onclick=()=>document.getElementById('pv').classList.remove('show');
+document.getElementById('pvGo').onclick=()=>{
+  if(window.top!==window){ toast('この確認用ページでは印刷できません。iPadのアプリ版で印刷できます'); return; }
+  document.body.classList.add('printing'); setTimeout(()=>{ window.print(); },50);
+};
+window.addEventListener('afterprint',()=>document.body.classList.remove('printing'));
+
+/* ===== LINE・Googleドライブ連携 ===== */
+function synced(){ return !!(S.sync&&S.sync.url&&S.sync.key); }
+async function api(method,params){
+  const u=S.sync.url;
+  if(method==='GET'){ const q=new URLSearchParams({...params,key:S.sync.key}); const r=await fetch(u+(u.includes('?')?'&':'?')+q); return r.json(); }
+  const r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...params,key:S.sync.key})}); return r.json();
+}
+function syncInfo(what){
+  sh.innerHTML=`<h3>${what==='line'?'📥 LINEの写真を連絡帳に':'☁ PDFをGoogleドライブに'}</h3>
+  <div class="who">この機能は、LINE・Googleドライブとの連携を設定すると使えます（試作では未設定です）。</div>
+  ${what==='line'?`<div class="field"><label>使い方（設定後）</label><div style="line-height:2">① いつものグループLINEに、利用者さんの名前だけを送る（例：上田キヨ）<br>② 続けて写真を送る（何枚でも。10分以内）<br>③ LINEに「上田キヨ 様の連絡帳に写真を入れました」と返事が来る<br>④ このアプリの連絡帳を開くと、写真が自動で入っています</div></div>`
+  :`<div class="field"><label>使い方（設定後）</label><div style="line-height:2">① 印刷プレビューで「☁ ドライブに保存」を押す<br>② Googleドライブの「デイサービスシャイン_介護記録」フォルダに、月ごとに分けてPDFが保存されます<br>　連絡帳：今の連絡帳フォルダ／20261128／連絡帳20261128_上田キヨ様.pdf（シャイン管理アプリの同期・ご家族へのLINE通知にそのまま乗ります）<br>　経過記録：経過記録PDF／2026-11／経過記録_2026-11-28_全員.pdf</div></div>`}
+  <div class="acts"><button class="btn primary" id="cancel">閉じる</button></div>`;
+  ov.classList.add('show'); document.getElementById('cancel').onclick=closeSheet;
+}
+function shrinkSrc(src){ return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>{ const m=900, sc=Math.min(1,m/Math.max(img.width,img.height)); const c=document.createElement('canvas'); c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc); c.getContext('2d').drawImage(img,0,0,c.width,c.height); res(c.toDataURL('image/jpeg',0.72)); }; img.onerror=rej; img.src=src; }); }
+let lineBusy=false, lineLast=0;
+async function lineImport(manual){
+  if(!synced()){ if(manual) syncInfo('line'); return; }
+  if(lineBusy) return; if(!manual && Date.now()-lineLast<60000) return;
+  lineBusy=true; lineLast=Date.now(); if(manual) toast('LINEの写真を確認しています…');
+  try{
+    const r=await api('GET',{action:'photos',date:dayStr()}); if(!r.ok) throw new Error(r.error);
+    S.lineDone=S.lineDone||{}; S.renraku=S.renraku||{};
+    const nm=x=>String(x||'').replace(/[\s　]/g,'').replace(/髙/g,'高').replace(/^（障）/,'');
+    let n=0, miss=0;
+    for(const p of r.photos){
+      if(S.lineDone[p.id]) continue;
+      const u=S.users.find(u=>nm(u.n)===nm(p.name)); if(!u){miss++;continue;}
+      const ph=await api('GET',{action:'photo',id:p.id}); if(!ph.ok) continue;
+      const src=await shrinkSrc(`data:${ph.type};base64,${ph.data}`);
+      const k=rkey(u.id); const rr=S.renraku[k]||(S.renraku[k]={msg:'',photos:[],family:'',done:false});
+      rr.photos.push(src); S.lineDone[p.id]=1; n++;
+      if(todayIds().indexOf(u.id)<0){ S.att[dayStr()].push(u.id); }
+    }
+    save(); if(n||manual) toast(n?`LINEから写真${n}枚を取り込みました`:'新しい写真はありません'); if(n) render();
+    if(miss&&manual) toast(`名簿にない名前の写真が${miss}枚ありました`);
+  }catch(e){ if(manual) toast('⚠ LINEの写真を取り込めませんでした'); }
+  lineBusy=false;
+}
+function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
+async function pdfLibs(){
+  if(!window.html2canvas) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  if(!window.jspdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+}
+async function pagesToPdf(els){
+  const pdf=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+  for(let i=0;i<els.length;i++){
+    const c=await window.html2canvas(els[i],{scale:2,backgroundColor:'#ffffff',useCORS:true});
+    let w=210, h=w*c.height/c.width; if(h>297){ h=297; w=h*c.width/c.height; }
+    if(i) pdf.addPage(); pdf.addImage(c.toDataURL('image/jpeg',0.85),'JPEG',(210-w)/2,0,w,h);
+  }
+  return pdf.output('datauristring').split(',')[1];
+}
+document.getElementById('pvDrive').onclick=async()=>{
+  if(!synced()){ syncInfo('drive'); return; }
+  const b=document.getElementById('pvDrive'); if(b.disabled) return; b.disabled=true; const t0=b.textContent; b.textContent='作成中…';
+  try{
+    await pdfLibs(); const els=[...document.querySelectorAll('#pvPages .pg')]; const d=dayStr(); let n=0;
+    if(PV.kind==='連絡帳'){
+      for(let i=0;i<els.length;i++){ const u=userById(PV.ids[i]); b.textContent=`保存中 ${i+1}/${els.length}`;
+        const r=await api('POST',{action:'uploadPdf',kind:'連絡帳',date:d,name:u.n,filename:`連絡帳${d.replace(/-/g,'')}_${u.n.replace(/[\s　]/g,'')}様.pdf`,data:await pagesToPdf([els[i]])}); if(r.ok) n++; }
+    }else{
+      const name=PV.ids.length===1?userById(PV.ids[0]).n.replace(/[\s　]/g,''):'全員';
+      b.textContent='保存中…';
+      const r=await api('POST',{action:'uploadPdf',kind:'経過記録',date:d,filename:`経過記録_${d}_${name}.pdf`,data:await pagesToPdf(els)}); if(r.ok) n++;
+    }
+    toast(n?`Googleドライブに保存しました（${n}件）`:'⚠ 保存できませんでした');
+  }catch(e){ toast('⚠ 保存できませんでした。通信を確認してください'); }
+  b.disabled=false; b.textContent=t0;
+};
+// 設定用リンク（#sync=URL|合言葉）で一度だけ設定
+(function(){ const h=decodeURIComponent(location.hash||''); if(h.startsWith('#sync=')){ const [url,key]=h.slice(6).split('|'); S.sync={url,key}; save(); history.replaceState(null,'',location.pathname); setTimeout(()=>toast('連携の設定をしました'),300); } })();
+
+/* ヘッダー */
+document.getElementById('prev').onclick=()=>{cur.setDate(cur.getDate()-1);render()};
+document.getElementById('next').onclick=()=>{cur.setDate(cur.getDate()+1);render()};
+document.getElementById('dayLabel').onclick=()=>{cur=new Date();render()};
+document.getElementById('staffBtn').onclick=()=>openStaffPicker();
+document.getElementById('gearBtn').onclick=openSettings;
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;personId=null;render();scrollTo(0,0)});
+render();
+</script>
+</body>
+</html>
