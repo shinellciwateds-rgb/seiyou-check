@@ -19,7 +19,7 @@
   --accent:#3b7fb0; --accent-bg:#e1eef8; --accent-ink:#ffffff;
   --red:#d55a4a; --red-bg:#fde7e3; --amber:#c98a1d; --amber-bg:#fcf0d6; --ok:#3f9a74; --ok-bg:#e0f2e9;
   --gray-bg:#eef1f4; --shadow:0 2px 12px rgba(30,55,80,.08); --r:16px;
-  --c-vital:#d5694f; --c-meal:#d9962b; --c-water:#3b8fc4; --c-toilet:#8a6cc1; --c-bath:#2f9fa0; --c-nap:#6d7fb8; --c-train:#4f9a5c; --c-note:#7d8791; --c-pick:#b0607e;
+  --c-vital:#d5694f; --c-meal:#d9962b; --c-water:#3b8fc4; --c-toilet:#8a6cc1; --c-bath:#2f9fa0; --c-nap:#6d7fb8; --c-train:#4f9a5c; --c-note:#7d8791; --c-pick:#b0607e; --c-med:#a8508f; --c-care:#5c86a8;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -78,7 +78,7 @@ main{padding-top:16px}
 .chip.done{color:#fff}
 .chip.k-vital.done{background:var(--c-vital)} .chip.k-meal.done{background:var(--c-meal)} .chip.k-water.done{background:var(--c-water)}
 .chip.k-toilet.done{background:var(--c-toilet)} .chip.k-bath.done{background:var(--c-bath)} .chip.k-note.done{background:var(--c-note)}
-.chip.k-nap.done{background:var(--c-nap)} .chip.k-pick.done{background:var(--c-pick)} .chip.k-train.done{background:var(--c-train)}
+.chip.k-nap.done{background:var(--c-nap)} .chip.k-pick.done{background:var(--c-pick)} .chip.k-med.done{background:var(--c-med)} .chip.k-care.done{background:var(--c-care)} .chip.k-train.done{background:var(--c-train)}
 .ucard .last{font-size:13px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .empty{background:var(--card);border-radius:var(--r);padding:40px 20px;text-align:center;color:var(--sub)}
 
@@ -98,7 +98,7 @@ main{padding-top:16px}
 .kbtn small{font-weight:600;font-size:12px;opacity:.9}
 .kbtn:active{filter:brightness(.92)}
 .k-vital.kbtn{background:var(--c-vital)} .k-meal.kbtn{background:var(--c-meal)} .k-water.kbtn{background:var(--c-water)} .k-toilet.kbtn{background:var(--c-toilet)}
-.k-bath.kbtn{background:var(--c-bath)} .k-nap.kbtn{background:var(--c-nap)} .k-train.kbtn{background:var(--c-train)} .k-note.kbtn{background:var(--c-note)} .k-pick.kbtn{background:var(--c-pick)}
+.k-bath.kbtn{background:var(--c-bath)} .k-nap.kbtn{background:var(--c-nap)} .k-train.kbtn{background:var(--c-train)} .k-note.kbtn{background:var(--c-note)} .k-pick.kbtn{background:var(--c-pick)} .k-med.kbtn{background:var(--c-med)} .k-care.kbtn{background:var(--c-care)}
 .feebar{background:var(--amber-bg);border-radius:10px;padding:8px 12px;margin:-4px 0 12px;font-weight:700;font-size:15px}
 .sumrow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
 @media (max-width:620px){.sumrow{grid-template-columns:repeat(2,1fr)}}
@@ -116,7 +116,7 @@ main{padding-top:16px}
 .tl .by{width:90px;color:var(--sub);font-size:14px}
 .tag{display:inline-block;color:#fff;font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px;white-space:nowrap}
 .tag.k-vital{background:var(--c-vital)} .tag.k-meal{background:var(--c-meal)} .tag.k-water{background:var(--c-water)} .tag.k-toilet{background:var(--c-toilet)}
-.tag.k-bath{background:var(--c-bath)} .tag.k-nap{background:var(--c-nap)} .tag.k-train{background:var(--c-train)} .tag.k-note{background:var(--c-note)} .tag.k-pick{background:var(--c-pick)}
+.tag.k-bath{background:var(--c-bath)} .tag.k-nap{background:var(--c-nap)} .tag.k-train{background:var(--c-train)} .tag.k-note{background:var(--c-note)} .tag.k-pick{background:var(--c-pick)} .tag.k-med{background:var(--c-med)} .tag.k-care{background:var(--c-care)}
 .bad{color:var(--red);font-weight:800}
 
 /* bulk */
@@ -335,8 +335,14 @@ const TPL = [
  {c:'移動・転倒', k:['note'], t:[
   '独歩にて移動される。','杖歩行にて移動される。','歩行器にて移動される。','車いすにて移動される。','見守りにて移動される。','手引き歩行にて移動される。','歩行時ふらつきあり、見守りを強化する。',
   '立ち上がり時ふらつきあり。','転倒なし。','転倒あり、外傷なし。看護師・ご家族へ報告。','ずり落ちあり、外傷なし。','つまずきあり、転倒には至らず。']},
- {c:'服薬・処置', k:['note','vital'], t:[
+ {c:'服薬・処置', k:['note','vital','med','care'], t:[
   '昼食後薬を服用される。','服薬確認する。','服薬介助する。','薬を飲み忘れていたため、ご家族へ連絡する。','目薬を点眼する。','湿布を貼付する。','軟膏を塗布する。','血糖測定を実施する。','インスリン注射を確認する。','処置を実施する（看護師）。']},
+ {c:'服薬', k:['med'], t:[
+  '昼食後薬を服用される。','声掛けにて服用される。','手渡しで自己服用される。','口に入れて介助し、服用を確認する。','服用後、口の中に残りがないことを確認する。','粉薬をとろみに混ぜて服用していただく。','錠剤が飲みにくい様子あり、看護師へ報告。',
+  '服薬を拒否される。時間をおいて再度声掛けし、服用される。','服薬を拒否され、服用できず。ご家族へ報告する。','お薬の持参がなかったため、ご家族へ連絡する。','お薬が1回分多く入っていたため、ご家族へ確認する。','頓服薬を服用される（看護師判断）。','お預かりしたお薬は連絡帳と一緒にお返しする。']},
+ {c:'処置', k:['care'], t:[
+  '看護師にて処置を実施する。','軟膏を塗布する。','湿布を貼り替える。','ガーゼ交換を行う。滲出液少量、汚染なし。','創部に発赤・腫れなし。','創部に軽度の発赤あり、経過観察とする。','保護テープを貼付する。',
+  '点眼する。','爪切りを実施する。','耳垢の除去を行う。','血糖測定を実施する。','インスリン注射を確認する。','吸引を実施する。痰少量。','ストーマ周囲の皮膚に異常なし。','褥瘡の処置を行う。状態は前回と変わりなし。','処置内容をご家族へ連絡帳で報告する。']},
  {c:'送迎・帰宅', k:['note'], t:[
   '送迎車にて帰宅される。','笑顔で帰宅される。','ご家族へ様子を伝える。','ご家族へ連絡帳を手渡す。','帰宅時、ご家族不在のため、鍵の場所を確認して入室介助する。','ご自宅内まで付き添う。','送迎中、車酔いの訴えあり。','送迎中、穏やかに過ごされる。','早退される（理由：）。']},
  {c:'家族・ケアマネ連絡', k:['note'], t:[
@@ -359,6 +365,8 @@ const KINDS = {
   water:{n:'水分',i:'🥤',short:'水分'},
   toilet:{n:'排泄',i:'🚻',short:'排泄'},
   bath:{n:'入浴',i:'🛁',short:'入浴'},
+  med:{n:'服薬',i:'💊',short:'服薬'},
+  care:{n:'処置',i:'🩹',short:'処置'},
   nap:{n:'午睡',i:'💤',short:'午睡'},
   train:{n:'機能訓練',i:'💪',short:'訓練'},
   note:{n:'様子',i:'📝',short:'様子'}
@@ -376,7 +384,7 @@ function feesOf(uid){ const f=[]; entriesOf(uid).forEach(e=>{
 function supplyFees(x){ const f=[]; const cnt=v=>parseInt(v)||0;
   for(let i=0;i<cnt(x.pad);i++) f.push(SUPPLIES.pad); for(let i=0;i<cnt(x.pants);i++) f.push(SUPPLIES.pants); if(x.wash==='あり') f.push(SUPPLIES.wash); return f; }
 function feeText(uid){ const f=feesOf(uid); if(!f.length) return ''; const c={}; f.forEach(x=>{c[x.n]=c[x.n]||{n:0,yen:0}; c[x.n].n++; c[x.n].yen+=x.yen;}); return Object.keys(c).map(k=>`${k}${c[k].n>1?'×'+c[k].n:''} ${c[k].yen}円`).join('、')+`　合計 ${f.reduce((a,x)=>a+x.yen,0)}円`; }
-const KORDER = ['pick','vital','meal','water','toilet','bath','nap','train','note'];
+const KORDER = ['pick','vital','meal','water','toilet','bath','med','care','nap','train','note'];
 const PHRASES = {
   note:['笑顔で過ごされる','他利用者と会話を楽しまれる','レクに参加される','穏やかに過ごされる','落ち着かない様子あり','眠そうにされている','ご家族へ連絡済み','特変なし'],
   vital:['再検あり','ご本人より体調良好との事','看護師へ報告済み'],
@@ -384,6 +392,8 @@ const PHRASES = {
   toilet:['自立','見守り','一部介助','全介助','失禁あり','パッド交換'],
   bath:['皮膚状態異常なし','発赤あり','軟膏塗布','爪切り実施','バイタル不良のため中止','本人拒否のため中止'],
   nap:['よく眠られる','横になるが眠らず'],
+  med:['声掛けで服用','手渡しで自己服用','服用確認済み','看護師へ報告済み','ご家族へ連絡済み'],
+  care:['異常なし','発赤あり','経過観察','看護師にて実施','ご家族へ連絡帳で報告'],
   pick:['ご家族へ申し送り済み','体調変化なし','車いすで乗降','手引き歩行で介助','ご家族不在・施錠確認','連絡帳をお渡し'],
   train:['意欲的に取り組まれる','疲労の訴えあり','声掛けで実施']
 };
@@ -415,6 +425,7 @@ function demoState(){
     if(k===0||k===3) add(uid,'14:'+String(30+k).padStart(2,'0'),'water',k?{ml:'150',what:'ココア',yen:'50'}:{ml:'150',what:'ホットコーヒー',yen:'50'},'介護 C');
     if(k<6) add(uid,'10:'+String(20+k*4).padStart(2,'0'),'bath',{how:k===4?'機械浴':'一般浴',hair:'洗髪あり',memo:''},'介護 B');
     if(k<8) add(uid,'12:'+String(10+k).padStart(2,'0'),'meal',{main:['10','8','10','5'][k%4],side:['10','8','5','10','8'][k%5],memo:k===6?'ムセなし':''},'介護 C');
+    if(k<5) add(uid,'12:'+String(40+k).padStart(2,'0'),'med',{when:'昼食後',how:k===2?'介助で服用':'声掛けで服用'},'看護 A');
     if(k%3===0) add(uid,'11:'+String(15+k).padStart(2,'0'),'toilet',{type:'尿',where:'トイレ',amt:'中',memo:'自立'},'介護 A');
   });
   add(ids[0],'13:30','note',{text:'昼食後、他利用者と会話を楽しまれる。笑顔多く見られる。'},'相談員');
@@ -458,6 +469,8 @@ function describe(e){
     case 'water': return `${esc(x.what||'水分')} ${esc(x.ml)}ml`+(+x.yen?`（諸費用 ${esc(x.yen)}円）`:'')+(x.memo?'　'+esc(x.memo):'');
     case 'toilet': return [x.type,x.where,x.amt&&('量 '+x.amt)].filter(Boolean).map(esc).join('・')+(x.fees&&x.fees.length?`（諸費用 ${[x.pad&&x.pad!=='なし'&&'パット'+x.pad,x.pants&&x.pants!=='なし'&&'リハパン'+x.pants,x.wash==='あり'&&'洗濯'].filter(Boolean).map(esc).join('・')} ${x.fees.reduce((a,f)=>a+ +f[1],0)}円）`:'')+(x.memo?'　'+esc(x.memo):'');
     case 'bath': return [x.how,x.how!=='中止'&&x.hair].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
+    case 'med': return esc(x.when||'')+(x.how?'・'+(/拒否|持参なし/.test(x.how)?`<span class="bad">${esc(x.how)}</span>`:esc(x.how)):'')+(x.memo?'　'+esc(x.memo):'');
+    case 'care': return [x.what,x.part&&('部位：'+x.part)].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
     case 'pick': return [x.dir,x.how,x.walk].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
     case 'nap': return `${esc(x.from||'')}〜${esc(x.to||'')}`+(x.memo?'　'+esc(x.memo):'');
     case 'train': return [x.what].filter(Boolean).map(esc).join('')+(x.memo?'　'+esc(x.memo):'');
@@ -498,7 +511,7 @@ function statusChips(uid){
   const c=(k,label,on)=>`<span class="chip k-${k} ${on?'done':''}">${label}</span>`;
   const pk=es.filter(e=>e.kind==='pick'); const pin=pk.find(e=>e.data.dir==='お迎え'), pout=pk.find(e=>e.data.dir==='お送り');
   const fee=feesOf(uid).reduce((a,x)=>a+x.yen,0);
-  return (fee?`<span class="chip k-water done" style="background:var(--amber)">諸費用 ${fee}円</span>`:'')+c('pick',pout?`送迎 ${pin?pin.time+'〜':''}${pout.time}`:pin?`お迎え ${pin.time}`:'送迎',pk.length>0)+c('vital','バイタル',has('vital'))+c('meal',meal?`食事 ${meal.data.main||'-'}/${meal.data.side||'-'}`:'食事',!!meal)+c('water',ml?`水分 ${ml}ml`:'水分',ml>0)+c('toilet',tc?`排泄 ${tc}回`:'排泄',tc>0)+c('bath',bath?`入浴 ${bath.data.how}`:'入浴',!!bath)+c('note','様子',has('note'));
+  return (fee?`<span class="chip k-water done" style="background:var(--amber)">諸費用 ${fee}円</span>`:'')+c('pick',pout?`送迎 ${pin?pin.time+'〜':''}${pout.time}`:pin?`お迎え ${pin.time}`:'送迎',pk.length>0)+c('vital','バイタル',has('vital'))+c('meal',meal?`食事 ${meal.data.main||'-'}/${meal.data.side||'-'}`:'食事',!!meal)+c('water',ml?`水分 ${ml}ml`:'水分',ml>0)+c('toilet',tc?`排泄 ${tc}回`:'排泄',tc>0)+c('bath',bath?`入浴 ${bath.data.how}`:'入浴',!!bath)+c('med','服薬',has('med'))+c('note','様子',has('note'));
 }
 function vitalAlert(uid){
   const v=entriesOf(uid).filter(e=>e.kind==='vital').pop(); if(!v) return '';
@@ -724,6 +737,16 @@ function openSheet(uid,kind,entry){
     body=`<div class="field"><label>入浴方法</label>${opts('how',['一般浴','機械浴','シャワー浴','清拭','中止'],x.how||'一般浴')}</div>
       <div class="field"><label>洗髪</label>${opts('hair',['洗髪あり','洗髪なし'],x.hair||'洗髪あり')}</div>
       <div class="field"><label>メモ（皮膚の状態など）</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('bath','memo')}</div>`;
+  }
+  if(kind==='med'){
+    body=`<div class="field"><label>いつの薬</label>${opts('when',['昼食前','昼食後','食間','10時','15時','頓服'],x.when||'昼食後')}</div>
+      <div class="field"><label>服薬の様子</label>${opts('how',['自己服用','声掛けで服用','介助で服用','拒否','持参なし'],x.how||'声掛けで服用')}</div>
+      <div class="field"><label>メモ（お薬の名前・様子など）</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('med','memo')}</div>`;
+  }
+  if(kind==='care'){
+    body=`<div class="field"><label>処置の内容</label>${opts('what',['軟膏塗布','湿布','ガーゼ交換','点眼','爪切り','血糖測定','インスリン','吸引','褥瘡処置','その他'],x.what||'軟膏塗布')}</div>
+      <div class="field"><label>部位</label><input data-f="part" value="${esc(x.part||'')}" placeholder="例：背中、右膝" style="width:100%;font-size:18px;padding:10px;border:2px solid var(--line);border-radius:12px"></div>
+      <div class="field"><label>メモ（状態など）</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('care','memo')}</div>`;
   }
   if(kind==='pick'){
     const back=+String(entry?entry.time:nowHM()).slice(0,2)>=13||entriesOf(uid).some(e=>e.kind==='pick'&&e.data.dir==='お迎え');
