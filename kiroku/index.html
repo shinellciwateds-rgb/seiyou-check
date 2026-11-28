@@ -365,9 +365,16 @@ const KINDS = {
 };
 /* 有料の飲み物（ナーシングネットの諸費用項目と同じ名前・単価） */
 const DRINKS = [['ホットコーヒー',50],['アイスコーヒー',50],['カフェオレ',50],['ミルクティー',50],['ココア',50],['オレンジジュース',50],['りんごジュース',50],['ぶどうジュース',50],['コカコーラ',50],['三ツ矢サイダー',50],['ノンアルコールビール',200],['ノンアルコールビール(500ml)',250],['ノンアルコールカクテル',200],['ノンアルコール日本酒',500]];
+/* 排泄で使う諸費用（ナーシングネットの諸費用項目と同じ名前・単価） */
+const SUPPLIES = {pad:['パット（1枚）',50], pants:['リハビリパンツ(1枚)',100], wash:['洗濯代',100]};
 const FREE_DRINKS = ['お茶','水','牛乳','とろみ茶','その他'];
 const drinkYen = n => { const d=DRINKS.find(x=>x[0]===n); return d?d[1]:0; };
-function feesOf(uid){ return entriesOf(uid).filter(e=>e.kind==='water'&&+e.data.yen>0).map(e=>({n:e.data.what,yen:+e.data.yen})); }
+function feesOf(uid){ const f=[]; entriesOf(uid).forEach(e=>{
+  if(e.kind==='water'&&+e.data.yen>0) f.push({n:e.data.what,yen:+e.data.yen});
+  if(e.kind==='toilet'&&e.data.fees) e.data.fees.forEach(([n,y])=>f.push({n,yen:+y}));
+}); return f; }
+function supplyFees(x){ const f=[]; const cnt=v=>parseInt(v)||0;
+  for(let i=0;i<cnt(x.pad);i++) f.push(SUPPLIES.pad); for(let i=0;i<cnt(x.pants);i++) f.push(SUPPLIES.pants); if(x.wash==='あり') f.push(SUPPLIES.wash); return f; }
 function feeText(uid){ const f=feesOf(uid); if(!f.length) return ''; const c={}; f.forEach(x=>{c[x.n]=c[x.n]||{n:0,yen:0}; c[x.n].n++; c[x.n].yen+=x.yen;}); return Object.keys(c).map(k=>`${k}${c[k].n>1?'×'+c[k].n:''} ${c[k].yen}円`).join('、')+`　合計 ${f.reduce((a,x)=>a+x.yen,0)}円`; }
 const KORDER = ['pick','vital','meal','water','toilet','bath','nap','train','note'];
 const PHRASES = {
@@ -449,7 +456,7 @@ function describe(e){
     }
     case 'meal': return `主食 ${esc(x.main||'-')}割　副食 ${esc(x.side||'-')}割`+(x.memo?'　'+esc(x.memo):'');
     case 'water': return `${esc(x.what||'水分')} ${esc(x.ml)}ml`+(+x.yen?`（諸費用 ${esc(x.yen)}円）`:'')+(x.memo?'　'+esc(x.memo):'');
-    case 'toilet': return [x.type,x.where,x.amt&&('量 '+x.amt)].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
+    case 'toilet': return [x.type,x.where,x.amt&&('量 '+x.amt)].filter(Boolean).map(esc).join('・')+(x.fees&&x.fees.length?`（諸費用 ${[x.pad&&x.pad!=='なし'&&'パット'+x.pad,x.pants&&x.pants!=='なし'&&'リハパン'+x.pants,x.wash==='あり'&&'洗濯'].filter(Boolean).map(esc).join('・')} ${x.fees.reduce((a,f)=>a+ +f[1],0)}円）`:'')+(x.memo?'　'+esc(x.memo):'');
     case 'bath': return [x.how,x.how!=='中止'&&x.hair].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
     case 'pick': return [x.dir,x.how,x.walk].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
     case 'nap': return `${esc(x.from||'')}〜${esc(x.to||'')}`+(x.memo?'　'+esc(x.memo):'');
@@ -538,7 +545,7 @@ function viewPerson(uid){
       <div class="sum"><div class="l">食事 主食/副食</div><div class="v">${meal?`${meal.data.main||'-'} / ${meal.data.side||'-'} 割`:'—'}</div></div>
       <div class="sum"><div class="l">水分 合計</div><div class="v">${ml?ml+' ml':'—'}</div></div>
       <div class="sum"><div class="l">排泄</div><div class="v">${tc?tc+' 回':'—'}</div></div>
-    </div>${feeText(uid)?`<div class="feebar">💴 諸費用（飲み物）：${esc(feeText(uid))}</div>`:''}
+    </div>${feeText(uid)?`<div class="feebar">💴 諸費用：${esc(feeText(uid))}</div>`:''}
     <table class="tl"><thead><tr><th>時刻</th><th>項目</th><th>内容</th><th>記録者</th></tr></thead><tbody>`;
   if(!es.length) h+=`<tr><td colspan="4" class="hint" style="padding:30px;text-align:center">まだ記録がありません。左の項目ボタンから記録します。</td></tr>`;
   es.forEach(e=>{ h+=`<tr class="row" data-act="edit" data-eid="${e.id}"><td class="tm">${e.time}</td><td class="kd"><span class="tag k-${e.kind}">${KINDS[e.kind].short}</span></td><td>${describe(e)}</td><td class="by">${esc(e.by||'')}</td></tr>`; });
@@ -707,6 +714,10 @@ function openSheet(uid,kind,entry){
     body=`<div class="field"><label>種類</label>${opts('type',['尿','便','尿・便','なし'],x.type||'尿')}</div>
       <div class="field"><label>場所</label>${opts('where',['トイレ','Pトイレ','パッド','オムツ'],x.where||'トイレ')}</div>
       <div class="field"><label>量</label>${opts('amt',['少','中','多'],x.amt||'')}</div>
+      <div class="optsep" style="margin-top:14px">有料（諸費用に入ります）</div>
+      <div class="field"><label>パット（1枚 50円）</label>${opts('pad',['なし','1枚','2枚','3枚'],x.pad||'なし')}</div>
+      <div class="field"><label>リハビリパンツ（1枚 100円）</label>${opts('pants',['なし','1枚','2枚','3枚'],x.pants||'なし')}</div>
+      <div class="field"><label>洗濯代（1回 100円）</label>${opts('wash',['なし','あり'],x.wash||'なし')}</div>
       <div class="field"><label>メモ</label><textarea data-f="memo" style="min-height:70px">${esc(x.memo||'')}</textarea>${phr('toilet','memo')}</div>`;
   }
   if(kind==='bath'){
@@ -761,6 +772,7 @@ function openSheet(uid,kind,entry){
     if(kind==='note'&&!data.text){toast('内容を入力してください');return;}
     if(kind==='vital'&&!data.t&&!data.sys&&!data.p&&!data.o){toast('数値を入力してください');return;}
     if(kind==='meal'&&!data.main&&!data.side){toast('割合を選んでください');return;}
+    if(kind==='toilet'){ const f=supplyFees(data); if(f.length) data.fees=f; }
     if(kind==='water'){ const y=drinkYen(data.what); if(y) data.yen=String(y); else delete data.yen; }
     const time=document.getElementById('etime').value||nowHM();
     if(entry){ Object.assign(entry,{time,data,ts:Date.now()}); }
@@ -947,7 +959,7 @@ function recordPage(uid){
   <div class="who2"><b>${esc(u.n)} 様</b><span>${esc(u.lv||'')}</span>${u.warn?`<span>注意：${esc(u.warn)}</span>`:''}</div>
   <table class="rt"><thead><tr><th>時刻</th><th>項目</th><th>内容</th><th>記録者</th></tr></thead><tbody>`+
   (es.length?es.map(e=>`<tr><td class="c">${e.time}</td><td class="c">${KINDS[e.kind].n}</td><td>${describe(e)}</td><td class="c">${esc(e.by||'')}</td></tr>`).join(''):'<tr><td colspan="4">記録なし</td></tr>')+
-  `</tbody></table>${feeText(uid)?`<div style="margin-top:8px;font-size:12px"><b>諸費用（飲み物）</b>　${esc(feeText(uid))}</div>`:''}<div class="stamp"><table><tr><td>施設長</td><td>相談員</td><td>看護</td></tr><tr><td></td><td></td><td></td></tr></table></div></div>`;
+  `</tbody></table>${feeText(uid)?`<div style="margin-top:8px;font-size:12px"><b>諸費用</b>　${esc(feeText(uid))}</div>`:''}<div class="stamp"><table><tr><td>施設長</td><td>相談員</td><td>看護</td></tr><tr><td></td><td></td><td></td></tr></table></div></div>`;
 }
 function openPreview(title,html,count){
   if(!count){toast('印刷する記録がありません');return;}
