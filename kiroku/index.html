@@ -99,6 +99,7 @@ main{padding-top:16px}
 .kbtn:active{filter:brightness(.92)}
 .k-vital.kbtn{background:var(--c-vital)} .k-meal.kbtn{background:var(--c-meal)} .k-water.kbtn{background:var(--c-water)} .k-toilet.kbtn{background:var(--c-toilet)}
 .k-bath.kbtn{background:var(--c-bath)} .k-nap.kbtn{background:var(--c-nap)} .k-train.kbtn{background:var(--c-train)} .k-note.kbtn{background:var(--c-note)} .k-pick.kbtn{background:var(--c-pick)}
+.feebar{background:var(--amber-bg);border-radius:10px;padding:8px 12px;margin:-4px 0 12px;font-weight:700;font-size:15px}
 .sumrow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
 @media (max-width:620px){.sumrow{grid-template-columns:repeat(2,1fr)}}
 .sum{background:var(--gray-bg);border-radius:12px;padding:8px 10px}
@@ -146,6 +147,8 @@ main{padding-top:16px}
 .field{margin:14px 0}
 .field>label{display:block;font-size:14px;color:var(--sub);font-weight:700;margin-bottom:6px}
 .opts{display:flex;flex-wrap:wrap;gap:8px}
+.optsep{flex-basis:100%;font-size:14px;font-weight:700;color:var(--sub);margin-top:8px}
+.opt .yen{display:block;font-size:12px;font-weight:700;color:var(--amber);line-height:1.1}.opt.on .yen{color:inherit}
 .opt{border:2px solid var(--line);background:var(--bg);border-radius:12px;min-height:52px;min-width:64px;padding:0 14px;font-weight:700;font-size:17px}
 .opt.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .vgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
@@ -360,6 +363,12 @@ const KINDS = {
   train:{n:'機能訓練',i:'💪',short:'訓練'},
   note:{n:'様子',i:'📝',short:'様子'}
 };
+/* 有料の飲み物（ナーシングネットの諸費用項目と同じ名前・単価） */
+const DRINKS = [['ホットコーヒー',50],['アイスコーヒー',50],['カフェオレ',50],['ミルクティー',50],['ココア',50],['オレンジジュース',50],['りんごジュース',50],['ぶどうジュース',50],['コカコーラ',50],['三ツ矢サイダー',50],['ノンアルコールビール',200],['ノンアルコールビール(500ml)',250],['ノンアルコールカクテル',200],['ノンアルコール日本酒',500]];
+const FREE_DRINKS = ['お茶','水','牛乳','とろみ茶','その他'];
+const drinkYen = n => { const d=DRINKS.find(x=>x[0]===n); return d?d[1]:0; };
+function feesOf(uid){ return entriesOf(uid).filter(e=>e.kind==='water'&&+e.data.yen>0).map(e=>({n:e.data.what,yen:+e.data.yen})); }
+function feeText(uid){ const f=feesOf(uid); if(!f.length) return ''; const c={}; f.forEach(x=>{c[x.n]=c[x.n]||{n:0,yen:0}; c[x.n].n++; c[x.n].yen+=x.yen;}); return Object.keys(c).map(k=>`${k}${c[k].n>1?'×'+c[k].n:''} ${c[k].yen}円`).join('、')+`　合計 ${f.reduce((a,x)=>a+x.yen,0)}円`; }
 const KORDER = ['pick','vital','meal','water','toilet','bath','nap','train','note'];
 const PHRASES = {
   note:['笑顔で過ごされる','他利用者と会話を楽しまれる','レクに参加される','穏やかに過ごされる','落ち着かない様子あり','眠そうにされている','ご家族へ連絡済み','特変なし'],
@@ -396,6 +405,7 @@ function demoState(){
     const t=(36+rnd()*1.1).toFixed(1), sys=Math.round(112+rnd()*45), dia=Math.round(64+rnd()*22), p=Math.round(62+rnd()*24), o=Math.round(94+rnd()*5);
     add(uid,'09:'+String(10+k*3).padStart(2,'0'),'vital',{t,sys:String(k===2?168:sys),dia:String(dia),p:String(p),o:String(o)},k%2?'看護 A':'看護 B');
     add(uid,'10:'+String(5+k*2).padStart(2,'0'),'water',{ml:'150',what:'お茶'},'介護 A');
+    if(k===0||k===3) add(uid,'14:'+String(30+k).padStart(2,'0'),'water',k?{ml:'150',what:'ココア',yen:'50'}:{ml:'150',what:'ホットコーヒー',yen:'50'},'介護 C');
     if(k<6) add(uid,'10:'+String(20+k*4).padStart(2,'0'),'bath',{how:k===4?'機械浴':'一般浴',hair:'洗髪あり',memo:''},'介護 B');
     if(k<8) add(uid,'12:'+String(10+k).padStart(2,'0'),'meal',{main:['10','8','10','5'][k%4],side:['10','8','5','10','8'][k%5],memo:k===6?'ムセなし':''},'介護 C');
     if(k%3===0) add(uid,'11:'+String(15+k).padStart(2,'0'),'toilet',{type:'尿',where:'トイレ',amt:'中',memo:'自立'},'介護 A');
@@ -438,7 +448,7 @@ function describe(e){
       return p.join('　')+(x.memo?'<br>'+esc(x.memo):'');
     }
     case 'meal': return `主食 ${esc(x.main||'-')}割　副食 ${esc(x.side||'-')}割`+(x.memo?'　'+esc(x.memo):'');
-    case 'water': return `${esc(x.what||'水分')} ${esc(x.ml)}ml`+(x.memo?'　'+esc(x.memo):'');
+    case 'water': return `${esc(x.what||'水分')} ${esc(x.ml)}ml`+(+x.yen?`（諸費用 ${esc(x.yen)}円）`:'')+(x.memo?'　'+esc(x.memo):'');
     case 'toilet': return [x.type,x.where,x.amt&&('量 '+x.amt)].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
     case 'bath': return [x.how,x.how!=='中止'&&x.hair].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
     case 'pick': return [x.dir,x.how,x.walk].filter(Boolean).map(esc).join('・')+(x.memo?'　'+esc(x.memo):'');
@@ -480,7 +490,8 @@ function statusChips(uid){
   const bath=es.find(e=>e.kind==='bath');
   const c=(k,label,on)=>`<span class="chip k-${k} ${on?'done':''}">${label}</span>`;
   const pk=es.filter(e=>e.kind==='pick'); const pin=pk.find(e=>e.data.dir==='お迎え'), pout=pk.find(e=>e.data.dir==='お送り');
-  return c('pick',pout?`送迎 ${pin?pin.time+'〜':''}${pout.time}`:pin?`お迎え ${pin.time}`:'送迎',pk.length>0)+c('vital','バイタル',has('vital'))+c('meal',meal?`食事 ${meal.data.main||'-'}/${meal.data.side||'-'}`:'食事',!!meal)+c('water',ml?`水分 ${ml}ml`:'水分',ml>0)+c('toilet',tc?`排泄 ${tc}回`:'排泄',tc>0)+c('bath',bath?`入浴 ${bath.data.how}`:'入浴',!!bath)+c('note','様子',has('note'));
+  const fee=feesOf(uid).reduce((a,x)=>a+x.yen,0);
+  return (fee?`<span class="chip k-water done" style="background:var(--amber)">諸費用 ${fee}円</span>`:'')+c('pick',pout?`送迎 ${pin?pin.time+'〜':''}${pout.time}`:pin?`お迎え ${pin.time}`:'送迎',pk.length>0)+c('vital','バイタル',has('vital'))+c('meal',meal?`食事 ${meal.data.main||'-'}/${meal.data.side||'-'}`:'食事',!!meal)+c('water',ml?`水分 ${ml}ml`:'水分',ml>0)+c('toilet',tc?`排泄 ${tc}回`:'排泄',tc>0)+c('bath',bath?`入浴 ${bath.data.how}`:'入浴',!!bath)+c('note','様子',has('note'));
 }
 function vitalAlert(uid){
   const v=entriesOf(uid).filter(e=>e.kind==='vital').pop(); if(!v) return '';
@@ -527,7 +538,7 @@ function viewPerson(uid){
       <div class="sum"><div class="l">食事 主食/副食</div><div class="v">${meal?`${meal.data.main||'-'} / ${meal.data.side||'-'} 割`:'—'}</div></div>
       <div class="sum"><div class="l">水分 合計</div><div class="v">${ml?ml+' ml':'—'}</div></div>
       <div class="sum"><div class="l">排泄</div><div class="v">${tc?tc+' 回':'—'}</div></div>
-    </div>
+    </div>${feeText(uid)?`<div class="feebar">💴 諸費用（飲み物）：${esc(feeText(uid))}</div>`:''}
     <table class="tl"><thead><tr><th>時刻</th><th>項目</th><th>内容</th><th>記録者</th></tr></thead><tbody>`;
   if(!es.length) h+=`<tr><td colspan="4" class="hint" style="padding:30px;text-align:center">まだ記録がありません。左の項目ボタンから記録します。</td></tr>`;
   es.forEach(e=>{ h+=`<tr class="row" data-act="edit" data-eid="${e.id}"><td class="tm">${e.time}</td><td class="kd"><span class="tag k-${e.kind}">${KINDS[e.kind].short}</span></td><td>${describe(e)}</td><td class="by">${esc(e.by||'')}</td></tr>`; });
@@ -689,7 +700,8 @@ function openSheet(uid,kind,entry){
   }
   if(kind==='water'){
     body=`<div class="field"><label>量（ml）</label>${opts('ml',['50','100','150','200','250','300'],x.ml||'150')}</div>
-      <div class="field"><label>種類</label>${opts('what',['お茶','水','牛乳','コーヒー','ジュース','とろみ茶','その他'],x.what||'お茶')}</div>`;
+      <div class="field"><label>種類</label><div class="opts" data-name="what">${FREE_DRINKS.map(v=>`<button type="button" class="opt ${(x.what||'お茶')===v?'on':''}" data-v="${esc(v)}">${esc(v)}</button>`).join('')}
+        <div class="optsep">有料（諸費用に入ります）</div>${DRINKS.map(([v,y])=>`<button type="button" class="opt ${x.what===v?'on':''}" data-v="${esc(v)}">${esc(v)}<small class="yen">${y}円</small></button>`).join('')}</div></div>`;
   }
   if(kind==='toilet'){
     body=`<div class="field"><label>種類</label>${opts('type',['尿','便','尿・便','なし'],x.type||'尿')}</div>
@@ -749,6 +761,7 @@ function openSheet(uid,kind,entry){
     if(kind==='note'&&!data.text){toast('内容を入力してください');return;}
     if(kind==='vital'&&!data.t&&!data.sys&&!data.p&&!data.o){toast('数値を入力してください');return;}
     if(kind==='meal'&&!data.main&&!data.side){toast('割合を選んでください');return;}
+    if(kind==='water'){ const y=drinkYen(data.what); if(y) data.yen=String(y); else delete data.yen; }
     const time=document.getElementById('etime').value||nowHM();
     if(entry){ Object.assign(entry,{time,data,ts:Date.now()}); }
     else S.entries.push({id:uid+kind+Date.now().toString(36),d:dayStr(),uid,time,kind,data,by:S.me,ts:Date.now()});
@@ -934,7 +947,7 @@ function recordPage(uid){
   <div class="who2"><b>${esc(u.n)} 様</b><span>${esc(u.lv||'')}</span>${u.warn?`<span>注意：${esc(u.warn)}</span>`:''}</div>
   <table class="rt"><thead><tr><th>時刻</th><th>項目</th><th>内容</th><th>記録者</th></tr></thead><tbody>`+
   (es.length?es.map(e=>`<tr><td class="c">${e.time}</td><td class="c">${KINDS[e.kind].n}</td><td>${describe(e)}</td><td class="c">${esc(e.by||'')}</td></tr>`).join(''):'<tr><td colspan="4">記録なし</td></tr>')+
-  `</tbody></table><div class="stamp"><table><tr><td>施設長</td><td>相談員</td><td>看護</td></tr><tr><td></td><td></td><td></td></tr></table></div></div>`;
+  `</tbody></table>${feeText(uid)?`<div style="margin-top:8px;font-size:12px"><b>諸費用（飲み物）</b>　${esc(feeText(uid))}</div>`:''}<div class="stamp"><table><tr><td>施設長</td><td>相談員</td><td>看護</td></tr><tr><td></td><td></td><td></td></tr></table></div></div>`;
 }
 function openPreview(title,html,count){
   if(!count){toast('印刷する記録がありません');return;}
