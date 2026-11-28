@@ -937,7 +937,7 @@ function syncInfo(what){
   sh.innerHTML=`<h3>${what==='line'?'📥 LINEの写真を連絡帳に':'☁ PDFをGoogleドライブに'}</h3>
   <div class="who">この機能は、LINE・Googleドライブとの連携を設定すると使えます（試作では未設定です）。</div>
   ${what==='line'?`<div class="field"><label>使い方（設定後）</label><div style="line-height:2">① いつものグループLINEに、利用者さんの名前だけを送る（例：上田キヨ）<br>② 続けて写真を送る（何枚でも。10分以内）<br>③ LINEに「上田キヨ 様の連絡帳に写真を入れました」と返事が来る<br>④ このアプリの連絡帳を開くと、写真が自動で入っています</div></div>`
-  :`<div class="field"><label>使い方（設定後）</label><div style="line-height:2">① 印刷プレビューで「☁ ドライブに保存」を押す<br>② Googleドライブの「デイサービスシャイン_介護記録」フォルダに、月ごとに分けてPDFが保存されます<br>　連絡帳：連絡帳PDF／2026-11／連絡帳_2026-11-28_上田キヨ.pdf<br>　経過記録：経過記録PDF／2026-11／経過記録_2026-11-28_全員.pdf</div></div>`}
+  :`<div class="field"><label>使い方（設定後）</label><div style="line-height:2">① 印刷プレビューで「☁ ドライブに保存」を押す<br>② Googleドライブの「デイサービスシャイン_介護記録」フォルダに、月ごとに分けてPDFが保存されます<br>　連絡帳：今の連絡帳フォルダ／20261128／連絡帳20261128_上田キヨ様.pdf（シャイン管理アプリの同期・ご家族へのLINE通知にそのまま乗ります）<br>　経過記録：経過記録PDF／2026-11／経過記録_2026-11-28_全員.pdf</div></div>`}
   <div class="acts"><button class="btn primary" id="cancel">閉じる</button></div>`;
   ov.classList.add('show'); document.getElementById('cancel').onclick=closeSheet;
 }
@@ -987,7 +987,7 @@ document.getElementById('pvDrive').onclick=async()=>{
     await pdfLibs(); const els=[...document.querySelectorAll('#pvPages .pg')]; const d=dayStr(); let n=0;
     if(PV.kind==='連絡帳'){
       for(let i=0;i<els.length;i++){ const u=userById(PV.ids[i]); b.textContent=`保存中 ${i+1}/${els.length}`;
-        const r=await api('POST',{action:'uploadPdf',kind:'連絡帳',date:d,filename:`連絡帳_${d}_${u.n.replace(/[\s　]/g,'')}.pdf`,data:await pagesToPdf([els[i]])}); if(r.ok) n++; }
+        const r=await api('POST',{action:'uploadPdf',kind:'連絡帳',date:d,name:u.n.replace(/^（障）/,''),filename:`連絡帳${d.replace(/-/g,'')}_${u.n.replace(/[\s　]/g,'')}様.pdf`,data:await pagesToPdf([els[i]])}); if(r.ok) n++; }
     }else{
       const name=PV.ids.length===1?userById(PV.ids[0]).n.replace(/[\s　]/g,''):'全員';
       b.textContent='保存中…';

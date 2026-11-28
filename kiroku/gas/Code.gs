@@ -11,6 +11,9 @@
  */
 
 const ROOT_FOLDER_NAME = 'デイサービスシャイン_介護記録';
+// シャイン管理アプリが見ている連絡帳フォルダ（rename_tool.py と同じ）。
+// ここに「日付(YYYYMMDD)のフォルダ / 連絡帳YYYYMMDD_名前様.pdf」で入れると、今のDrive同期・LINE通知にそのまま乗る
+const RENRAKU_FOLDER_ID = '10PMUjdRbxhR73WUuhw-PRrYbCTBrZpYf';
 const PHOTO_MINUTES = 10;   // 名前を送ってから何分間の写真をその人の分にするか
 
 function prop_(k){ return PropertiesService.getScriptProperties().getProperty(k) || ''; }
@@ -117,7 +120,24 @@ function saveRoster_(names){
   if (names.length) sh.getRange(2, 1, names.length, 1).setValues(names.map(n => [n]));
   return {ok:true, count: names.length};
 }
+function subfolder_(parent, name){ const it = parent.getFoldersByName(name); return it.hasNext() ? it.next() : parent.createFolder(name); }
 function uploadPdf_(b){
+  if (b.kind === '連絡帳') return uploadRenraku_(b);
+  return uploadOther_(b);
+}
+// 連絡帳：管理アプリと同じ置き場所・名前・共有設定にする
+function uploadRenraku_(b){
+  const ymd = String(b.date || today_()).replace(/-/g, '');            // 20261128
+  const name = norm_(b.name);                                        // 空白なし（例：上田キヨ）
+  const folder = subfolder_(DriveApp.getFolderById(RENRAKU_FOLDER_ID), ymd);
+  let fname = '連絡帳' + ymd + '_' + name + '様.pdf', n = 1;
+  while (folder.getFilesByName(fname).hasNext()) fname = '連絡帳' + ymd + '_' + name + '様_' + (n++) + '.pdf'; // 同名は連番（rename_tool と同じ）
+  const file = folder.createFile(Utilities.newBlob(Utilities.base64Decode(b.data), 'application/pdf', fname));
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  sheet_('PDF', ['保存日時','種類','日付','ファイル名','URL']).appendRow([now_(), '連絡帳', b.date, fname, file.getUrl()]);
+  return {ok:true, url: file.getUrl(), name: fname};
+}
+function uploadOther_(b){
   // b.kind: '経過記録' | '連絡帳'、b.date: 'yyyy-MM-dd'、b.filename、b.data: base64
   const month = String(b.date || today_()).slice(0, 7);
   const folder = folder_([b.kind === '連絡帳' ? '連絡帳PDF' : '経過記録PDF', month]);
